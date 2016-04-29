@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # coding: utf-8
 
 header = {
@@ -9,7 +10,7 @@ header = {
 # 新欢 尤雨溪, 2333
 base_person_page = 'https://www.zhihu.com/people/evanyou'
 
-zhihu_home = 'www.zhihu.com'
+zhihu_home = 'https://www.zhihu.com'
 Captcha_URL_Prefix = zhihu_home + '/captcha.gif?r='
 login_with_email = zhihu_home + '/login/email'
 followed_url_suffix = '/followees'

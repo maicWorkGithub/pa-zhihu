@@ -1,7 +1,8 @@
+#!/usr/bin/env python3
 # coding: utf-8
 import json
 import requests
-from .base_setting import *
+from base_setting import *
 import time
 import os
 import getpass
@@ -97,3 +98,6 @@ class Client:
     def return_session(self):
         return self._session
 
+if __name__ == '__main__':
+    client = Client()
+    client.login_in_terminal()
