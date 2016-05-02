@@ -1,17 +1,37 @@
 #!/usr/bin/env python3
 # coding: utf-8
 from lxml import html
-from lxml.html import tostring
+import json
+from urllib.parse import urlencode
+import re
 
+
+def _get_attr_str(arr):
+    if len(arr):
+        return arr[0]
+    else:
+        return ''
+
+
+person_dict = {}
 with open('evanyou.html', 'rb') as f:
     file_content = f.read()
-    html_content = html.fromstring(file_content)
-    left_profile = html_content.xpath(u'//div[@class="zu-main-content-inner"]')
 
-    username = left_profile[0].xpath(u'//div[@class="zm-profile-header-main"]//span[@class="name"]/text()')
-    gender = left_profile[0].xpath(u'//span[@class="item gender"]/i/@class')
-    location = left_profile[0].xpath(u'//span[@class="location item"]/@title')
+html_ll = html.fromstring(file_content)
+# print(pattern.findall(str(file_content)))
+# print(json.dumps(person_dict, sort_keys=True, indent=4))
+# print(json.loads(html_ll.xpath(u'//div[@class="zh-general-list clearfix"]/@data-init')[0])['params']['hash_id'])
 
-    print(tostring(left_profile[0]))
-    print(username, gender, location)
-    print(html_content.xpath(u'//a[@class="name"]/text()'))
+data = {'method': 'next',
+        '_xsrf': '25b36ac4d2d64b1242bf0150485d0b33'
+        }
+
+params = {
+    'order_by': 'created',
+    'offset': 20,
+    'hash_id': 'cfdec6226ece879d2571fbc274372e9f'
+}
+
+data['params'] = re.sub("(?<=:) *", "", json.dumps(params))
+
+print(json.dumps(params).replace(' ', ''))

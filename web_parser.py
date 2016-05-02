@@ -1,31 +1,28 @@
 #!/usr/bin/env python3
 # coding: utf-8
-# import sys
-# import os
-
-# PACKAGE_PARENT = '..'
-# SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
-# sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
-from client import Client
 from base_setting import *
 from lxml import html
 from sq_db import *
+import requests
+import json
+import math
+import pprint
+import re
 
 sq = SqDb()
 
 
 class WebParser:
     def __init__(self, url):
-        self.login = Client('cookies')
-        self._session = self.login.return_session()
         self.person_dict = {}
         self.followed_urls = []
         self.url = url
 
     def get_person_info(self):
-        r = self._session.get(self.url)
-        if r.state_code == 200:
-            doc = html.tostring(r.text)
+        r = requests.get(self.url, headers=header, cookies=cookies)
+        if r.status_code == 200:
+            doc = html.fromstring(r.text)
+            # self.user_hash = json.loads(doc.xpath(u'//script[@data-name="ga_vars"]/text()')[0])['user_hash']
             self.person_dict['crawled'] = True
         else:
             doc = ''
@@ -60,7 +57,7 @@ class WebParser:
             self.person_dict['business'] = self._get_attr_str(left_profile[0].xpath(
                 u'//span[@class="business item"]/@title'))
             self.person_dict['company'] = self._get_attr_str(left_profile[0].xpath(
-                u'//span[@class="company item"]/@title'))
+                u'//span[@class="employment item"]/@title'))
             self.person_dict['position'] = self._get_attr_str(left_profile[0].xpath(
                 u'//span[@class="position item"]/@title'))
             self.person_dict['education'] = self._get_attr_str(left_profile[0].xpath(
@@ -69,22 +66,20 @@ class WebParser:
                 u'//span[@class="education-extra item"]/text()'))
             self.person_dict['thanks'] = self._get_attr_str(left_profile[0].xpath(
                 u'//span[@class="zm-profile-header-user-thanks"]/strong/text()'))
-            self.person_dict['asked'] = self._get_attr_str(left_profile[0].xpath(
-                u'//div[@class="profile-nav-bar"]//span[@class="num"]/text'))
-            self.person_dict['answered'] = self._get_attr_str(left_profile[0].xpath(
-                u'//div[@class="profile-nav-bar"]//span[@class="num"][1]/text'))
-            self.person_dict['post'] = self._get_attr_str(left_profile[0].xpath(
-                u'//div[@class="profile-nav-bar"]//span[@class="num"][2]/text'))
-            self.person_dict['collect'] = self._get_attr_str(left_profile[0].xpath(
-                u'//div[@class="profile-nav-bar"]//span[@class="num"][3]/text'))
-            self.person_dict['public-edit'] = self._get_attr_str(left_profile[0].xpath(
-                u'//div[@class="profile-nav-bar"]//span[@class="num"][4]/text'))
-            self.person_dict['followed'] = self._get_attr_str(right_profile[0].xpath(
-                u'//div[@class="zm-profile-side-following"]/a[@class="item"]/strong/text()]'))
-            self.person_dict['follower'] = self._get_attr_str(right_profile[0].xpath(
-                u'//div[@class="zm-profile-side-following"]/a[@class="item"][1]/strong/text()]'))
-
-        return self.person_dict
+            self.person_dict['asked'] = left_profile[0].xpath(
+                u'//div[@class="profile-navbar clearfix"]//span[@class="num"]/text()')[0]
+            self.person_dict['answered'] = left_profile[0].xpath(
+                u'//div[@class="profile-navbar clearfix"]//span[@class="num"]/text()')[1]
+            self.person_dict['post'] = left_profile[0].xpath(
+                u'//div[@class="profile-navbar clearfix"]//span[@class="num"]/text()')[2]
+            self.person_dict['collect'] = left_profile[0].xpath(
+                u'//div[@class="profile-navbar clearfix"]//span[@class="num"]/text()')[3]
+            self.person_dict['public-edit'] = left_profile[0].xpath(
+                u'//div[@class="profile-navbar clearfix"]//span[@class="num"]/text()')[4]
+            self.person_dict['followed'] = right_profile[0].xpath(
+                u'//div[@class="zm-profile-side-following zg-clear"]/a[@class="item"]/strong/text()')[0]
+            self.person_dict['follower'] = right_profile[0].xpath(
+                u'//div[@class="zm-profile-side-following zg-clear"]/a[@class="item"]/strong/text()')[1]
 
     @staticmethod
     def _get_attr_str(arr):
@@ -92,6 +87,50 @@ class WebParser:
             return arr[0]
         else:
             return ''
+
+    def get_user_followed(self):
+        url = self.url + followed_url_suffix
+        hd = header
+        hd['Referer'] = self.url
+        del hd['X-Requested-With']
+        r = requests.get(url, headers=header, cookies=cookies)
+        if r.status_code == 200:
+            times = math.ceil(int(self.person_dict['followed']) / 20) - 1
+            html_doc = html.fromstring(r.text)
+            # 这个只用来找前20个
+            self.followed_urls.append(html_doc.xpath(u'//h2[@class="zm-list-content-title"]/a/@href'))
+
+            if times:
+                data = {
+                    'method': 'next',
+                    '_xsrf': html_doc.xpath(u'//input[@name="_xsrf"]/@value')
+                }
+                params = {
+                    'order_by': 'created',
+                    'hash_id': json.loads(self._get_attr_str(html_doc.xpath(
+                        u'//div[@class="zh-general-list clearfix"]/@data-init')))['params']['hash_id']
+                }
+
+                headers = header
+                headers['Referer'] = url
+                headers['Host'] = 'www.zhihu.com'
+                headers['X-Requested-With'] = 'XMLHttpRequest'
+                # return_people_count = 20
+                # total_returned_count = 20
+                # while total_returned_count < int(self.person_dict['followed']):
+                #     # 这样看起来更合理点
+                #     pass
+                for i in range(times):
+                    params['offset'] = (i + 1) * 20
+                    data['params'] = json.dumps(params).replace(' ', '')
+                    r_inner = requests.post(url, data=data, headers=headers, cookies=cookies)
+                    content = r_inner.json()
+                    if content['r'] == 0:
+                        for people in content['msg']:
+                            self.followed_urls + (html.fromstring(people.xpath(
+                                u'//h2[@class="zm-list-content-title"]/a/@href')))
+            else:
+                raise 'code: %s' % r.status_code
 
     def save_person_to_db(self):
         sq.save_data(self.get_person_info())
@@ -103,8 +142,12 @@ class WebParser:
         # 最新动态没有专门的页面, 只能在主页用ajax请求抓取.
 
 if __name__ == '__main__':
+    pp = pprint.PrettyPrinter(indent=2)
+
     wp = WebParser(base_person_page)
-    print(wp.get_person_info())
+    wp.get_person_info()
+    print(json.dumps(wp.person_dict, sort_keys=True, indent=2))
+    pp.pprint(wp.get_user_followed())
 '''
 这个函数返回两个东西
 1, 爬取当前用户的一个dict
