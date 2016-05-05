@@ -1,2 +1,11 @@
 
 *.pyc
+
+cookies.json
+cookies
+
+*.db
+
+*.db-journal
+
+*.html

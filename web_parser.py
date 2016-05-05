@@ -2,24 +2,24 @@
 # coding: utf-8
 from base_setting import *
 from lxml import html
+from client import Client
 from sq_db import *
-import requests
 import json
 import math
-import pprint
-import re
 
 sq = SqDb()
 
 
 class WebParser:
     def __init__(self, url):
+        self.client = Client('cookies.json')
+        self._session = self.client.return_session()
         self.person_dict = {}
         self.followed_urls = []
         self.url = url
 
     def get_person_info(self):
-        r = requests.get(self.url, headers=header, cookies=cookies)
+        r = self._session.get(self.url)
         if r.status_code == 200:
             doc = html.fromstring(r.text)
             # self.user_hash = json.loads(doc.xpath(u'//script[@data-name="ga_vars"]/text()')[0])['user_hash']
@@ -93,17 +93,16 @@ class WebParser:
         hd = header
         hd['Referer'] = self.url
         del hd['X-Requested-With']
-        r = requests.get(url, headers=header, cookies=cookies)
+        r = self._session.get(url, headers=hd)
         if r.status_code == 200:
             times = math.ceil(int(self.person_dict['followed']) / 20) - 1
             html_doc = html.fromstring(r.text)
-            # 这个只用来找前20个
-            self.followed_urls.append(html_doc.xpath(u'//h2[@class="zm-list-content-title"]/a/@href'))
+            self.followed_urls = (html_doc.xpath(u'//h2[@class="zm-list-content-title"]/a/@href'))
 
             if times:
                 data = {
                     'method': 'next',
-                    '_xsrf': html_doc.xpath(u'//input[@name="_xsrf"]/@value')
+                    '_xsrf': self._get_attr_str(html_doc.xpath(u'//input[@name="_xsrf"]/@value'))
                 }
                 params = {
                     'order_by': 'created',
@@ -119,16 +118,16 @@ class WebParser:
                 # total_returned_count = 20
                 # while total_returned_count < int(self.person_dict['followed']):
                 #     # 这样看起来更合理点
-                #     pass
                 for i in range(times):
                     params['offset'] = (i + 1) * 20
                     data['params'] = json.dumps(params).replace(' ', '')
-                    r_inner = requests.post(url, data=data, headers=headers, cookies=cookies)
+                    r_inner = self._session.post(
+                        zhihu_home + '/node/ProfileFolloweesListV2', data=data, headers=headers)
                     content = r_inner.json()
                     if content['r'] == 0:
                         for people in content['msg']:
-                            self.followed_urls + (html.fromstring(people.xpath(
-                                u'//h2[@class="zm-list-content-title"]/a/@href')))
+                            self.followed_urls += (html.fromstring(people).xpath(
+                                u'//h2[@class="zm-list-content-title"]/a/@href'))
             else:
                 raise 'code: %s' % r.status_code
 
@@ -142,12 +141,12 @@ class WebParser:
         # 最新动态没有专门的页面, 只能在主页用ajax请求抓取.
 
 if __name__ == '__main__':
-    pp = pprint.PrettyPrinter(indent=2)
-
     wp = WebParser(base_person_page)
-    wp.get_person_info()
-    print(json.dumps(wp.person_dict, sort_keys=True, indent=2))
-    pp.pprint(wp.get_user_followed())
+    wp.get_user_followed()
+    print(wp.followed_urls)
+
+
+
 '''
 这个函数返回两个东西
 1, 爬取当前用户的一个dict
