@@ -33,38 +33,35 @@ tieba_url_start = 'http://tieba.baidu.com/p/4003196488?pn=1'
 # 返回每个页面的用户名检测
 
 def get_username_list(url):
+    url = url[0]
     r = requests.get(url)
     if r.status_code != 200:
         print('第 [%s] 页抓取失败, code: %s' % (url[-1:], r.status_code))
     print('第 [%s] 页' % (url[-1:],))
     db.save_link([{'link': url, 'status': 'crawled'}])
-    get_username_list(db.get_links_to_crawl()[0])
+    get_username_list(db.get_links_to_crawl()[0][0])
+
+# 这个是先往数据库里塞500个链接, 开始之前先跑一下, 之后就关了好了
+# cor = db.link_con.cursor()
+# for i in range(1, 500):
+#     cor.execute("INSERT INTO links (link, status) VALUES (?, ?);",
+#                 (tieba_url_start[:-1] + str(i), 'non-crawled'))
+#
+# db.link_con.commit()
+# cor.close()
 
 
-def get_tieba_work(init_url):
-    cor = db.link_con.cursor()
-    for i in range(1, 500):
-        cor.execute("INSERT INTO links (link, status) VALUES (?, ?);", (init_url[:-1] + str(i), 'non-crawled'))
-
-    db.link_con.commit()
-    cor.close()
-
-    get_username_list(init_url)
+def get_tieba_work():
 
     urls = db.get_links_to_crawl(work_num)
     works = []
     if not urls:
-        urls = [init_url]
-    for url in range(urls):
+        print('爬完了')
+        return
+    for url in urls:
         works.append(gevent.spawn(get_username_list, url))
     gevent.joinall(works)
 
-get_tieba_work(tieba_url_start)
 
+get_tieba_work()
 
-'''
-这里是往链接数据库里塞上500个百度贴吧的链接, 测试
-
-'''
-
-#

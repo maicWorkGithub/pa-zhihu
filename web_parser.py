@@ -135,22 +135,22 @@ class WebParser:
                                                        (html.fromstring(people).xpath(
                                                            u'//h2[@class="zm-list-content-title"]/a/@href'))]
                         else:
-                            print('用户 [%s] 在爬取关注者 [第%s页] 的时候返回内容为空, 已抓取 [%s个] 用户链接')\
-                                % (self.person_dict['username'], times, len(self.followed_urls))
+                            print('用户 [%s] 在爬取关注者 [第%s页] 的时候返回内容为空, 已抓取 [%s个] 用户链接') \
+                            % (self.person_dict['username'], times, len(self.followed_urls))
                     else:
                         print('用户 [%s] 在爬去关注者时, 抓取 [第%s页] 时失败, code为: %s') \
-                            % (self.person_dict['username'], times, r_inner.status_code)
+                        % (self.person_dict['username'], times, r_inner.status_code)
             else:
                 print('用户 [%s] 在获取关注者时未能打开followee首页, code为: %s') \
-                    % (self.person_dict['username'], r.status_code)
+                % (self.person_dict['username'], r.status_code)
 
-        # todo: 关注的话题, 回答, 提问, 最新动态, 关注的问题
+                # todo: 关注的话题, 回答, 提问, 最新动态, 关注的问题
+
 
 if __name__ == '__main__':
     wp = WebParser(base_person_page)
     wp.get_user_followed()
     print(wp.followed_urls)
-
 
 '''
 这个函数返回两个东西
