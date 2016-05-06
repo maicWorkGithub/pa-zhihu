@@ -22,11 +22,12 @@ class WebParser:
         r = self._session.get(self.url)
         if r.status_code == 200:
             doc = html.fromstring(r.text)
-            # self.user_hash = json.loads(doc.xpath(u'//script[@data-name="ga_vars"]/text()')[0])['user_hash']
-            self.person_dict['crawled'] = True
+            self.followed_urls += [{'link': self.url, 'status': 'crawled'}]
         else:
-            doc = ''
-            self.person_dict['crawled'] = False
+            print('在获取链接 [%s] 时失败, code为: %s') % (self.url, r.status_code)
+            self.followed_urls += [{'link': self.url, 'status': 'non-crawled'}]
+            return
+
         left_profile = doc.xpath(u'//div[@class="zu-main-content"]')
         right_profile = doc.xpath(u'//div[@class="zu-main-sidebar"]')
 
@@ -97,7 +98,8 @@ class WebParser:
         if r.status_code == 200:
             times = math.ceil(int(self.person_dict['followed']) / 20) - 1
             html_doc = html.fromstring(r.text)
-            self.followed_urls = (html_doc.xpath(u'//h2[@class="zm-list-content-title"]/a/@href'))
+            self.followed_urls += [{'link': x, 'status': 'non-crawled'} for x in
+                                   (html_doc.xpath(u'//h2[@class="zm-list-content-title"]/a/@href'))]
 
             if times:
                 data = {
@@ -114,37 +116,40 @@ class WebParser:
                 headers['Referer'] = url
                 headers['Host'] = 'www.zhihu.com'
                 headers['X-Requested-With'] = 'XMLHttpRequest'
-                # return_people_count = 20
-                # total_returned_count = 20
+                # return_people_count = 第一次len(self.followed_urls), 后面是len(json)
+                # total_returned_count = len(self.followed_urls)
                 # while total_returned_count < int(self.person_dict['followed']):
-                #     # 这样看起来更合理点
+                # 这样看起来更合理点
                 for i in range(times):
                     params['offset'] = (i + 1) * 20
                     data['params'] = json.dumps(params).replace(' ', '')
                     r_inner = self._session.post(
                         zhihu_home + '/node/ProfileFolloweesListV2', data=data, headers=headers)
-                    content = r_inner.json()
-                    if content['r'] == 0:
-                        for people in content['msg']:
-                            self.followed_urls += (html.fromstring(people).xpath(
-                                u'//h2[@class="zm-list-content-title"]/a/@href'))
+                    if r_inner.status_code == 200:
+                        # 这里失败的话
+                        content = r_inner.json()
+                        if content['r'] == 0:
+                            # 这里失败的话
+                            for people in content['msg']:
+                                self.followed_urls += [{'link': x, 'status': 'non-crawled'} for x in
+                                                       (html.fromstring(people).xpath(
+                                                           u'//h2[@class="zm-list-content-title"]/a/@href'))]
+                        else:
+                            print('用户 [%s] 在爬取关注者 [第%s页] 的时候返回内容为空, 已抓取 [%s个] 用户链接')\
+                                % (self.person_dict['username'], times, len(self.followed_urls))
+                    else:
+                        print('用户 [%s] 在爬去关注者时, 抓取 [第%s页] 时失败, code为: %s') \
+                            % (self.person_dict['username'], times, r_inner.status_code)
             else:
-                raise 'code: %s' % r.status_code
+                print('用户 [%s] 在获取关注者时未能打开followee首页, code为: %s') \
+                    % (self.person_dict['username'], r.status_code)
 
-    def save_person_to_db(self):
-        sq.save_data(self.get_person_info())
-
-    def save_link_in_db(self):
-        sq.save_link(self.followed_urls)
-        # followed-topic和回答,提问,最新动态,都有固定的url去抓,这个先不弄了吧.
-
-        # 最新动态没有专门的页面, 只能在主页用ajax请求抓取.
+        # todo: 关注的话题, 回答, 提问, 最新动态, 关注的问题
 
 if __name__ == '__main__':
     wp = WebParser(base_person_page)
     wp.get_user_followed()
     print(wp.followed_urls)
-
 
 
 '''

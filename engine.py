@@ -1,32 +1,34 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-from .base_setting import *
-from .sq_db import *
-from .web_parser import *
-import time
+from gevent import monkey
+monkey.patch_all()
+import gevent
+import sys
+
+# todo: fetchall() 为啥执行第二次就丢失了返回值
+
+'''
+1, 开十个线程,
+2, 给参数, 打印相应的结果:(这个在let's go里)
+    - 一个网址,给出这个人的dict
+    - 'time', 给出运行时间
+    - 'peoples', 给出抓到的人数
+    - 'efficiency', 给出抓到的人数 除以 运行时间
+    - 'links crawled', 给出已经抓过的链接数
+    - 'links non-crawled', 给出剩余的链接数
+    - 'all links', 给出所有链接数
+    - ''
 
 '''
 
-先开存数据库的方法, 一个小时之后开读数据库的方法
+def gevent_task(fn, sleep=1, work_count=10):
+    works = []
+    for i in range(work_count):
+        works.append(gevent.spawn(fn, ))
 
-'''
 
-start = time.time()
 
-web_parser = WebParser(base_person_page)
 
-db = SqDb()
 
-db.save_data(web_parser.person_dict, 'person')
-db.save_data(web_parser.followed_urls, 'urls')
-
-'''
-这个时候去读数据库, 看有没有标记为没爬过的url, 然后多线程去抓取
-todo: 测一下自增的删除中间一条之后的表现
-'''
-
-if int(time.time() - start) == 3600:
-    # 也就是一小时之后
-    db.read_data('urls')
 
