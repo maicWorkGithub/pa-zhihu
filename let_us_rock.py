@@ -36,8 +36,8 @@ def get_username_list(url):
     url = url[0]
     r = requests.get(url)
     if r.status_code != 200:
-        print('第 [%s] 页抓取失败, code: %s' % (url[-1:], r.status_code))
-    print('第 [%s] 页' % (url[-1:],))
+        print('第 [%s] 页抓取失败, code: %s' % (url[url.find('pn=') + 3:], r.status_code))
+    print('第 [%s] 页' % (url[url.find('pn=') + 3:],))
     db.save_link([{'link': url, 'status': 'crawled'}])
     get_username_list(db.get_links_to_crawl()[0][0])
 
