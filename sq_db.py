@@ -78,13 +78,19 @@ class SqDb:
 
     def get_links_to_crawl(self, num=1):
         cor = self.link_con.cursor()
-        cor.execute("SELECT link FROM links WHERE status='non-crawled' LIMIT ?;", (num, ))
+        cor.execute("SELECT link FROM links WHERE status !='crawled' LIMIT ?;", (num,))
         res = cor.fetchall()
+        for url in res:
+            cor.execute("UPDATE links SET status='lock' WHERE link=?;", url)
+        self.link_con.commit()
+        cor.close()
         return res if res else []
 
     # 下面这三个可以在数据库方法实现
     def get_people_count(self):
-        pass
+        cor = self.data_con.cursor()
+        cor.execute("SELECT MAX(id) FROM person_dict;")
+        return cor.fetchall()[0][0]
 
     def get_links_count(self):
         pass

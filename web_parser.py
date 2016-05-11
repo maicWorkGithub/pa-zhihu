@@ -144,7 +144,7 @@ class WebParser:
                 print('用户 [%s] 在获取关注者时未能打开followee首页, code为: %s') \
                 % (self.person_dict['username'], r.status_code)
 
-                # todo: 关注的话题, 回答, 提问, 最新动态, 关注的问题
+                # todo: 关注的话题, 回答, 提问, 最新动态, 关注的问题(这个好像看不到)
 
 
 if __name__ == '__main__':
