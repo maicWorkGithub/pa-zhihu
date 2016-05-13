@@ -31,4 +31,4 @@ active_answered_url_suffix = '/answers'
 active_asked_url_suffix = '/asks'
 
 
-
+log_file = 'pa-zhihu-log.txt'
