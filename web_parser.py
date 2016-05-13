@@ -3,11 +3,8 @@
 from base_setting import *
 from lxml import html
 from client import Client
-from sq_db import *
 import json
 import math
-
-sq = SqDb()
 
 
 class WebParser:
