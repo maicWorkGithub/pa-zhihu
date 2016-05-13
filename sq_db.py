@@ -107,7 +107,8 @@ class SqDb:
     def get_data_count(self, table_name):
         cor = self.con.cursor()
         cor.execute("SELECT MAX(id) FROM " + table_name + ";")
-        return cor.fetchall()[0][0]
+        res = cor.fetchall()
+        return res if res[0][0] else 0
 
     def get_links_count(self):
         pass
