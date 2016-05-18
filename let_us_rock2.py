@@ -27,38 +27,47 @@ class Slut:
         self.person_queue = queue.Queue()
         self.write_link = None
         self.write_person = None
-        self.status = 'stopped'
         # 第一次爬100个人作为实验
-        self.data_limit = 100
+        # self.data_limit = 169
 
     def start_work(self):
-        self.status = 'running'
         self.write_link = self.pool.spawn(self._write_link_to_db)
         self.write_person = self.pool.spawn(self._write_person_to_db)
-        while self.db.get_data_count('links'):
+
+        self.pool.spawn(self._work, self.db.get_links_to_crawl()[0][0])
+        gevent.sleep(10)
+
+        while self.pool_left or self.db.get_links_to_crawl(lock=False):
             self.pool.wait_available()
             self.single_worker()
-            if self.db.get_data_count('persons') > self.data_limit:
-                gevent.killall(self.pool)
-                self.status = 'stopped'
-        logging.info('Status: ' + self.status)
+            # if self.db.get_data_count('persons') > self.data_limit:
+            #     gevent.killall(self.pool)
+            #     self.status = 'stopped'
+        # logging.info('Status: ' + self.status)
+        print('OVER!!')
 
         # while self.pool_left:
-        #     # 这个不知道是干嘛用的
         #     gevent.sleep(1)
 
     def single_worker(self):
         url = self.db.get_links_to_crawl()
+        print('*' * 40)
+        print(url)
+        print('*' * 40)
         if not url:
-            logging.info('links num in DB: ' + self.db.get_data_count('links'))
-            logging.info('persons num in DB: ' + self.db.get_data_count('persons'))
+            logging.info('links num in DB: ' + str(self.db.get_data_count('links')))
+            print('links num in DB: ' + str(self.db.get_data_count('links')))
+            logging.info('persons num in DB: ' + str(self.db.get_data_count('persons')))
+            print('persons num in DB: ' + str(self.db.get_data_count('persons')))
             if self.db.get_data_count('links'):
                 print('Job Done!')
                 return
+        print('pool append url: ' + str(url[0][0]))
         self.pool.spawn(self._work, url[0][0])
 
     def _work(self, url):
         logging.info('Start crawl ' + url)
+        print('Start crawl :' + url)
         web_parser = WebParser(url)
         web_parser.get_person_info()
         web_parser.get_user_followed()
@@ -70,26 +79,28 @@ class Slut:
             link = self.link_queue.get()
             try:
                 self.db.save_link(link)
-                logging.info('Write ' + link + ' to DB success.')
+                logging.info('Write link to DB success.')
+                print('Write link to DB success.')
             except Exception as e:
-                logging.warning('Write ' + link + ' to DB Fail. Caused by: ' + str(e))
-
-            gevent.sleep(2)
+                logging.warning('Write link to DB Fail. Caused by: ' + str(e))
+                print('Write link to DB Fail. Caused by: ' + str(e))
 
     def _write_person_to_db(self):
         while True:
             person = self.person_queue.get()
             try:
                 self.db.save_data(person)
-                logging.info('Write ' + person + ' to DB success.')
+                logging.info('Write person to DB success.')
+                print('Write person to DB success.')
             except Exception as e:
-                logging.warning('Write ' + person + ' to DB Fail. Caused by: ' + str(e))
-                
-            gevent.sleep(2)
+                logging.warning('Write person to DB Fail. Caused by: ' + str(e))
+                print('Write person to DB Fail. Caused by: ' + str(e))
 
     @property
     def pool_left(self):
-        return self.pool.size - self.pool.free_count()
+        print('池剩余数量: ' + str(self.pool.free_count()))
+        print('池总数量为: ' + str(self.pool.size))
+        return self.pool.free_count() < (self.pool.size - 2)
 
 if __name__ == "__main__":
     slut = Slut(10, base_person_page, 'test1')

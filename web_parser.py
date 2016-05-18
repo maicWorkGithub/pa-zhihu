@@ -14,14 +14,16 @@ class WebParser:
         self.person_dict = {}
         self.followed_urls = []
         self.url = url
+        print('开始抓取并解析链接: ' + self.url)
 
     def get_person_info(self):
         r = self._session.get(self.url)
         if r.status_code == 200:
             doc = html.fromstring(r.text)
             self.followed_urls += [{'link': self.url, 'status': 'crawled'}]
+            print('拉取链接 [%s] 成功.' % self.url)
         else:
-            print('在获取链接 [%s] 时失败, code为: %s') % (self.url, r.status_code)
+            print('在获取链接 [%s] 时失败, code为: %s' % (self.url, r.status_code))
             self.followed_urls += [{'link': self.url, 'status': 'non-crawled'}]
             return
 
@@ -90,7 +92,8 @@ class WebParser:
         url = self.url + followed_url_suffix
         hd = header
         hd['Referer'] = self.url
-        del hd['X-Requested-With']
+        if hd.get('X-Requested-With'):
+            del hd['X-Requested-With']
         r = self._session.get(url, headers=hd)
         if r.status_code == 200:
             times = math.ceil(int(self.person_dict['followed']) / 20) - 1
@@ -132,14 +135,14 @@ class WebParser:
                                                        (html.fromstring(people).xpath(
                                                            u'//h2[@class="zm-list-content-title"]/a/@href'))]
                         else:
-                            print('用户 [%s] 在爬取关注者 [第%s页] 的时候返回内容为空, 已抓取 [%s个] 用户链接') \
-                            % (self.person_dict['username'], times, len(self.followed_urls))
+                            print('用户 [%s] 在爬取关注者 [第%s页] 的时候返回内容为空, 已抓取 [%s个] 用户链接'
+                                  % (self.person_dict['username'], times, len(self.followed_urls)))
                     else:
-                        print('用户 [%s] 在爬去关注者时, 抓取 [第%s页] 时失败, code为: %s') \
-                        % (self.person_dict['username'], times, r_inner.status_code)
+                        print('用户 [%s] 在爬去关注者时, 抓取 [第%s页] 时失败, code为: %s'
+                              % (self.person_dict['username'], times, r_inner.status_code))
             else:
-                print('用户 [%s] 在获取关注者时未能打开followee首页, code为: %s') \
-                % (self.person_dict['username'], r.status_code)
+                print('用户 [%s] 的关注者少于21人, 人数为: %s'
+                      % (self.person_dict['username'], self.person_dict['followed']))
 
                 # todo: 关注的话题, 回答, 提问, 最新动态, 关注的问题(这个好像看不到)
 

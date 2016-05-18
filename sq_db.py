@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 #  coding: utf-8
 import sqlite3
+import time
 import os
 
 
 class SqDb:
     def __init__(self, db_name):
-        self.db_path = os.path.split(os.path.realpath(__file__))[0] + '/' + db_name
+        self.db_path = os.path.split(os.path.realpath(__file__))[0] + '/' + db_name + '.db'
         self.con = sqlite3.connect(self.db_path)
         cor = self.con.cursor()
         cor.execute("CREATE TABLE IF NOT EXISTS persons ("
-                    "id          INTEGER PRIMARY KEY AUTOINCREMENT, "
-                    "zhihu_ID    TEXT, "
+                    "zhihu_ID    TEXT PRIMARY KEY, "
                     "home_page   TEXT, "
                     "agreed      TEXT, "
                     "gender      TEXT, "
@@ -32,12 +32,14 @@ class SqDb:
                     "follower    TEXT)")
 
         cor.execute("CREATE TABLE IF NOT EXISTS links ("
-                    "id     INTEGER PRIMARY KEY AUTOINCREMENT, "
-                    "link   TEXT, "
+                    "link   TEXT PRIMARY KEY, "
                     "status TEXT)")
         cor.close()
 
     def save_data(self, pdict):
+        print('=' * 30)
+        print('正在保存 [%s] 的信息' % pdict['username'])
+        print('=' * 30)
         if not len(pdict):
             return
         cor = self.con.cursor()
@@ -60,6 +62,7 @@ class SqDb:
         cor.close()
 
     def save_link(self, links):
+        print('正在保存链接的数量为: [%s]' % len(links))
         if not len(links):
             return
         cor = self.con.cursor()
@@ -93,31 +96,34 @@ class SqDb:
         else:
             return 'new'
 
-    def get_links_to_crawl(self, num=1):
+    def get_links_to_crawl(self, num=1, lock=True):
+        time.sleep(3)
         cor = self.con.cursor()
-        cor.execute("SELECT link FROM links WHERE status !='crawled' LIMIT ?;", (num,))
+        cor.execute("SELECT link FROM links WHERE status='non-crawled' LIMIT ?;", (num,))
         res = cor.fetchall()
-        for url in res:
-            cor.execute("UPDATE links SET status='lock' WHERE link=?;", url)
-        self.con.commit()
-        cor.close()
+        if lock:
+            for url in res:
+                cor.execute("UPDATE links SET status='lock' WHERE link=?;", url)
+            self.con.commit()
+            cor.close()
+        print('查询到的链接为: [%s], 此时的Lock条件为: [%s]' % (res, lock))
         return res if res else []
 
     # 下面这三个可以在数据库方法实现
     def get_data_count(self, table_name):
         cor = self.con.cursor()
-        cor.execute("SELECT MAX(id) FROM " + table_name + ";")
+        cor.execute("SELECT COUNT (*) FROM " + table_name + ";")
         res = cor.fetchall()
+        print(' [%s] 表中有 [%s] 条数据' % (table_name, res[0][0]))
         return res if res[0][0] else 0
 
-    def get_links_count(self):
-        pass
-
-    def crawled_link(self):
-        pass
+    def show_table_data(self, table_name):
+        cor = self.con.cursor()
+        cor.execute("SELECT * FROM " + table_name + ";")
+        return cor.fetchall()
 
 if __name__ == '__main__':
-    db = SqDb('db_test')
+    db = SqDb('test1')
     big_links = [
         {'link': 'www.baidu.com', 'status': 'non-crawled'},
         {'link': 'www.baidu.com', 'status': 'crawled'},
@@ -148,7 +154,6 @@ if __name__ == '__main__':
         'followed': 2000,
         'follower': '233'
     }
-    db.save_link(big_links)
-    db.save_data(pdict)
-    print(db.get_links_to_crawl(2))
-
+    # db.save_link(big_links)
+    # db.save_data(pdict)
+    print(db.show_table_data('persons'))
