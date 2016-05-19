@@ -1,5 +1,12 @@
 # pa-zhihu
 
+## 环境
+
+ - python 3.3以上
+ - gevent
+ - lxml
+ - requests
+
 ## 计划
 
 - 以一个用户的首页为起始页，开始爬用户关注的人。
