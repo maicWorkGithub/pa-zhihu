@@ -6,6 +6,7 @@
  - gevent
  - lxml
  - requests
+ - 虽然我写了登陆界面，但是是抄的7sdream的，而且没有多次测试。所以现在登陆的cookie file是用7sdream的[zhihu-py3](https://github.com/7sDream/zhihu-py3)生成的。
 
 ## 计划
 
