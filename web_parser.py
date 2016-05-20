@@ -20,7 +20,7 @@ class WebParser:
         r = self._session.get(self.url)
         if r.status_code == 200:
             doc = html.fromstring(r.text)
-            self.followed_urls += [{'link': self.url, 'status': 'crawled'}]
+            self.followed_urls += [{'link': self.url, 'status': 'crawled', 'overwrite': True}]
             print('拉取链接 [%s] 成功.' % self.url)
         else:
             print('在获取链接 [%s] 时失败, code为: %s' % (self.url, r.status_code))
@@ -98,7 +98,7 @@ class WebParser:
         if r.status_code == 200:
             times = math.ceil(int(self.person_dict['followed']) / 20) - 1
             html_doc = html.fromstring(r.text)
-            self.followed_urls += [{'link': x, 'status': 'non-crawled'} for x in
+            self.followed_urls += [{'link': x, 'status': 'non-crawled', 'overwrite': False} for x in
                                    (html_doc.xpath(u'//h2[@class="zm-list-content-title"]/a/@href'))]
 
             if times:
@@ -131,7 +131,7 @@ class WebParser:
                         if content['r'] == 0:
                             # 这里失败的话
                             for people in content['msg']:
-                                self.followed_urls += [{'link': x, 'status': 'non-crawled'} for x in
+                                self.followed_urls += [{'link': x, 'status': 'non-crawled', 'overwrite': False} for x in
                                                        (html.fromstring(people).xpath(
                                                            u'//h2[@class="zm-list-content-title"]/a/@href'))]
                         else:
@@ -140,11 +140,11 @@ class WebParser:
                     else:
                         print('用户 [%s] 在爬去关注者时, 抓取 [第%s页] 时失败, code为: %s'
                               % (self.person_dict['username'], times, r_inner.status_code))
-            else:
-                print('用户 [%s] 的关注者少于21人, 人数为: %s'
-                      % (self.person_dict['username'], self.person_dict['followed']))
+            # else:
+            #     print('用户 [%s] 的关注者少于21人, 人数为: %s'
+            #           % (self.person_dict['username'], self.person_dict['followed']))
 
-                # todo: 关注的话题, 回答, 提问, 最新动态, 关注的问题(这个好像看不到)
+# todo: 关注的话题, 回答, 提问, 最新动态, 关注的问题(这个好像看不到)
 
 
 if __name__ == '__main__':

@@ -82,17 +82,20 @@ class SqDb:
         cor = self.con.cursor()
         '''
         返回三个字符串
-        same: 完全相同, 应该直接放弃, 不插入数据库
+        same: 完全相同, 应该直接放弃, 不插入数据库.或者是重复数据
         diff: 链接相同, 状态不同, 此时应该以插入的状态为准, 进行覆盖操作
         new : 新链接, 执行插入操作
         '''
         cor.execute("SELECT * FROM links WHERE link=?;", (link_dict['link'], ))
-        if cor.fetchall():
-            cor.execute("SELECT * FROM links WHERE link=? AND status=?;", (link_dict['link'], link_dict['status']))
-            if cor.fetchall():
-                return 'same'
+        result = cor.fetchall()
+        if result:
+            if link_dict['overwrite']:
+                if link_dict['status'] == result[0][1]:
+                    return 'same'
+                else:
+                    return 'diff'
             else:
-                return 'diff'
+                return 'same'
         else:
             return 'new'
 
@@ -107,14 +110,14 @@ class SqDb:
             self.con.commit()
             cor.close()
         print('查询到的链接为: [%s], 此时的Lock条件为: [%s]' % (res, lock))
-        return res if res else []
+        if res:
+            return res if res[0] else []
 
     # 下面这三个可以在数据库方法实现
     def get_data_count(self, table_name):
         cor = self.con.cursor()
         cor.execute("SELECT COUNT (*) FROM " + table_name + ";")
         res = cor.fetchall()
-        print(' [%s] 表中有 [%s] 条数据' % (table_name, res[0][0]))
         return res if res[0][0] else 0
 
     def show_table_data(self, table_name):
