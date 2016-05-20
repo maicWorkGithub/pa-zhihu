@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 #  coding: utf-8
 import sqlite3
-import time
 import os
+import logging
+from base_setting import *
+
+logging.basicConfig(filename=log_file, level=logging.INFO)
 
 
 class SqDb:
@@ -22,14 +25,14 @@ class SqDb:
                     "position    TEXT, "
                     "education   TEXT, "
                     "major       TEXT, "
-                    "thanks      TEXT, "
-                    "asked       TEXT, "
-                    "answered    TEXT, "
-                    "post        TEXT, "
-                    "collect     TEXT, "
-                    "public_edit TEXT, "
-                    "followed    TEXT, "
-                    "follower    TEXT)")
+                    "thanks      INT, "
+                    "asked       INT, "
+                    "answered    INT, "
+                    "post        INT, "
+                    "collect     INT, "
+                    "public_edit INT, "
+                    "followed    INT, "
+                    "follower    INT)")
 
         cor.execute("CREATE TABLE IF NOT EXISTS links ("
                     "link   TEXT PRIMARY KEY, "
@@ -38,6 +41,7 @@ class SqDb:
 
     def save_data(self, pdict):
         print('=' * 30)
+        logging.info('正在保存 [%s] 的信息' % pdict['username'])
         print('正在保存 [%s] 的信息' % pdict['username'])
         print('=' * 30)
         if not len(pdict):
@@ -63,6 +67,7 @@ class SqDb:
 
     def save_link(self, links):
         print('正在保存链接的数量为: [%s]' % len(links))
+        logging.info('正在保存链接的数量为: [%s]' % len(links))
         if not len(links):
             return
         cor = self.con.cursor()
@@ -100,7 +105,6 @@ class SqDb:
             return 'new'
 
     def get_links_to_crawl(self, num=1, lock=True):
-        time.sleep(3)
         cor = self.con.cursor()
         cor.execute("SELECT link FROM links WHERE status='non-crawled' LIMIT ?;", (num,))
         res = cor.fetchall()
@@ -110,6 +114,7 @@ class SqDb:
             self.con.commit()
             cor.close()
         print('查询到的链接为: [%s], 此时的Lock条件为: [%s]' % (res, lock))
+        logging.info('查询到的链接为: [%s], 此时的Lock条件为: [%s]' % (res, lock))
         if res:
             return res if res[0] else []
 
@@ -118,7 +123,7 @@ class SqDb:
         cor = self.con.cursor()
         cor.execute("SELECT COUNT (*) FROM " + table_name + ";")
         res = cor.fetchall()
-        return res if res[0][0] else 0
+        return res[0][0] if res[0][0] else 0
 
     def show_table_data(self, table_name):
         cor = self.con.cursor()
@@ -159,4 +164,4 @@ if __name__ == '__main__':
     }
     # db.save_link(big_links)
     # db.save_data(pdict)
-    print(db.show_table_data('persons'))
+    print(db.get_data_count('persons'))

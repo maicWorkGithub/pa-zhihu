@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 # coding: utf-8
 from base_setting import *
+from lxml import etree
 from lxml import html
 from client import Client
 import json
 import math
+import logging
+
+logging.basicConfig(filename=log_file, level=logging.INFO)
 
 
 class WebParser:
@@ -14,17 +18,23 @@ class WebParser:
         self.person_dict = {}
         self.followed_urls = []
         self.url = url
-        print('开始抓取并解析链接: ' + self.url)
 
     def get_person_info(self):
         r = self._session.get(self.url)
         if r.status_code == 200:
-            doc = html.fromstring(r.text)
-            self.followed_urls += [{'link': self.url, 'status': 'crawled', 'overwrite': True}]
-            print('拉取链接 [%s] 成功.' % self.url)
+            try:
+                doc = html.fromstring(r.text)
+                self.followed_urls += [{'link': self.url, 'status': 'crawled', 'overwrite': True}]
+                print('拉取链接 [%s] 成功.' % self.url)
+                logging.info('拉取链接 [%s] 成功.' % self.url)
+            except etree.XMLSyntaxError as e:
+                print('个人首页解析失败, 原因: ' + str(e))
+                logging.error('个人首页解析失败, 原因: ' + str(e))
+                return
         else:
             print('在获取链接 [%s] 时失败, code为: %s' % (self.url, r.status_code))
-            self.followed_urls += [{'link': self.url, 'status': 'non-crawled'}]
+            logging.warning('在获取链接 [%s] 时失败, code为: %s' % (self.url, r.status_code))
+            self.followed_urls += [{'link': self.url, 'status': 'non-crawled', 'overwrite': True}]
             return
 
         left_profile = doc.xpath(u'//div[@class="zu-main-content"]')
@@ -97,9 +107,14 @@ class WebParser:
         r = self._session.get(url, headers=hd)
         if r.status_code == 200:
             times = math.ceil(int(self.person_dict['followed']) / 20) - 1
-            html_doc = html.fromstring(r.text)
-            self.followed_urls += [{'link': x, 'status': 'non-crawled', 'overwrite': False} for x in
-                                   (html_doc.xpath(u'//h2[@class="zm-list-content-title"]/a/@href'))]
+            try:
+                html_doc = html.fromstring(r.text)
+                self.followed_urls += [{'link': x, 'status': 'non-crawled', 'overwrite': False} for x in
+                                       (html_doc.xpath(u'//h2[@class="zm-list-content-title"]/a/@href'))]
+            except etree.XMLSyntaxError as e:
+                print('个人followed首页解析失败, 原因: ' + str(e))
+                logging.error('个人followed首页解析失败, 原因: ' + str(e))
+                return
 
             if times:
                 data = {
@@ -131,15 +146,25 @@ class WebParser:
                         if content['r'] == 0:
                             # 这里失败的话
                             for people in content['msg']:
-                                self.followed_urls += [{'link': x, 'status': 'non-crawled', 'overwrite': False} for x in
-                                                       (html.fromstring(people).xpath(
-                                                           u'//h2[@class="zm-list-content-title"]/a/@href'))]
+                                try:
+                                    html.fromstring(people)
+                                    self.followed_urls += [{'link': x, 'status': 'non-crawled', 'overwrite': False}
+                                                           for x in (html.fromstring(people).xpath(
+                                                               u'//h2[@class="zm-list-content-title"]/a/@href'))]
+                                except etree.XMLSyntaxError as e:
+                                    print('个人followed内页的第' + str(i) + '解析失败, 原因: ' + str(e))
+                                    logging.error('个人followed内页的第' + str(i) + '解析失败, 原因: ' + str(e))
+                                    return
                         else:
                             print('用户 [%s] 在爬取关注者 [第%s页] 的时候返回内容为空, 已抓取 [%s个] 用户链接'
                                   % (self.person_dict['username'], times, len(self.followed_urls)))
+                            logging.warning('用户 [%s] 在爬取关注者 [第%s页] 的时候返回内容为空, 已抓取 [%s个] 用户链接'
+                                            % (self.person_dict['username'], times, len(self.followed_urls)))
                     else:
                         print('用户 [%s] 在爬去关注者时, 抓取 [第%s页] 时失败, code为: %s'
                               % (self.person_dict['username'], times, r_inner.status_code))
+                        logging.warning('用户 [%s] 在爬去关注者时, 抓取 [第%s页] 时失败, code为: %s'
+                                        % (self.person_dict['username'], times, r_inner.status_code))
             # else:
             #     print('用户 [%s] 的关注者少于21人, 人数为: %s'
             #           % (self.person_dict['username'], self.person_dict['followed']))

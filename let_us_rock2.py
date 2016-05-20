@@ -9,6 +9,7 @@ from gevent import pool
 from gevent import queue
 from web_parser import *
 from sq_db import *
+from base_setting import *
 import time
 import logging
 
@@ -32,13 +33,11 @@ class Slut:
         self.write_person = self.pool.spawn(self._write_person_to_db)
 
         self.pool.spawn(self._work, self.db.get_links_to_crawl()[0][0])
-        gevent.sleep(13)
+        gevent.sleep(1)
 
         while self.pool_left:
-            gevent.sleep(3)
-            print('waiting...')
             while self.db.get_links_to_crawl(lock=False):
-                gevent.sleep(3)
+                gevent.sleep(2)
                 self.pool.wait_available()
                 self.single_worker()
         print('OVER!!')
@@ -83,6 +82,7 @@ class Slut:
                 self.db.save_data(person)
                 logging.info('Write person to DB success.')
                 print('Write person to DB success.')
+                print('效率: ' + str(self.efficiency))
             except sqlite3.Error as e:
                 logging.warning('Write person to DB Fail. Caused by: ' + str(e))
                 print('Write person to DB Fail. Caused by: ' + str(e))
@@ -90,10 +90,15 @@ class Slut:
     @property
     def pool_left(self):
         print('池剩余数量: ' + str(self.pool.free_count()))
-        print(self.pool.free_count() < (self.pool.size - 2))
         return self.pool.free_count() < (self.pool.size - 2)
+
+    @property
+    def efficiency(self):
+        _time = time.time() - self.start_time
+        count = self.db.get_data_count('persons')
+        return count / _time
 
 
 if __name__ == "__main__":
-    slut = Slut(10, base_person_page, 'test1')
+    slut = Slut(10, base_person_page, 'test2')
     slut.start_work()
