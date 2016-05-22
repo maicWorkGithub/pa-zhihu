@@ -109,6 +109,7 @@ class WebParser:
             times = math.ceil(int(self.person_dict['followed']) / 20) - 1
             try:
                 html_doc = html.fromstring(r.text)
+                # 这里可以查看一下自己是多久被找到的。
                 self.followed_urls += [{'link': x, 'status': 'non-crawled', 'overwrite': False} for x in
                                        (html_doc.xpath(u'//h2[@class="zm-list-content-title"]/a/@href'))]
             except etree.XMLSyntaxError as e:
@@ -134,17 +135,15 @@ class WebParser:
                 # return_people_count = 第一次len(self.followed_urls), 后面是len(json)
                 # total_returned_count = len(self.followed_urls)
                 # while total_returned_count < int(self.person_dict['followed']):
-                # 这样看起来更合理点
+                # 这样看起来更合理点，后面报错的页数要用一个自增的变量计算
                 for i in range(times):
                     params['offset'] = (i + 1) * 20
                     data['params'] = json.dumps(params).replace(' ', '')
                     r_inner = self._session.post(
                         zhihu_home + '/node/ProfileFolloweesListV2', data=data, headers=headers)
                     if r_inner.status_code == 200:
-                        # 这里失败的话
                         content = r_inner.json()
                         if content['r'] == 0:
-                            # 这里失败的话
                             for people in content['msg']:
                                 try:
                                     html.fromstring(people)
@@ -154,7 +153,7 @@ class WebParser:
                                 except etree.XMLSyntaxError as e:
                                     print('个人followed内页的第' + str(i) + '解析失败, 原因: ' + str(e))
                                     logging.error('个人followed内页的第' + str(i) + '解析失败, 原因: ' + str(e))
-                                    return
+                                    continue
                         else:
                             print('用户 [%s] 在爬取关注者 [第%s页] 的时候返回内容为空, 已抓取 [%s个] 用户链接'
                                   % (self.person_dict['username'], times, len(self.followed_urls)))

@@ -13,10 +13,12 @@ class SqDb:
         self.db_path = os.path.split(os.path.realpath(__file__))[0] + '/' + db_name + '.db'
         self.con = sqlite3.connect(self.db_path)
         cor = self.con.cursor()
+        # 社交网络的分析应该还存入每个人的关注者的链接，甚至是关注本人的链接
+        # 这样的单个个人信息会非常庞大。
+        # 个人动态的时效性要求更高。这个先不弄了吧
         cor.execute("CREATE TABLE IF NOT EXISTS persons ("
                     "zhihu_ID    TEXT PRIMARY KEY, "
                     "home_page   TEXT, "
-                    "agreed      TEXT, "
                     "gender      TEXT, "
                     "username    TEXT, "
                     "location    TEXT, "
@@ -25,6 +27,7 @@ class SqDb:
                     "position    TEXT, "
                     "education   TEXT, "
                     "major       TEXT, "
+                    "agreed      INT, "
                     "thanks      INT, "
                     "asked       INT, "
                     "answered    INT, "
@@ -49,25 +52,25 @@ class SqDb:
         cor = self.con.cursor()
         try:
             cor.execute("INSERT INTO persons "
-                        "(zhihu_ID,   home_page, agreed,    gender, "
-                        "username,    location,  business,  company, "
-                        "position,    education, major,     thanks, "
+                        "(zhihu_ID,   home_page,  gender,    username, "
+                        "location,    business,   company,   position, "
+                        "education,   major,      agreed,    thanks, "
                         "asked,       answered,  post,      collect, "
                         "public_edit, followed,  follower) "
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
-                        (pdict['zhihu-ID'], pdict['home-page'], pdict['agreed'], pdict['gender'],
-                         pdict['username'], pdict['location'], pdict['business'], pdict['company'],
-                         pdict['position'], pdict['education'], pdict['major'], pdict['thanks'],
-                         pdict['asked'], pdict['answered'], pdict['post'], pdict['collect'],
-                         pdict['public-edit'], pdict['followed'], pdict['follower']))
+                        (pdict['zhihu-ID'],  pdict['home-page'],   pdict['agreed'],    pdict['gender'],
+                         pdict['username'],  pdict['location'],    pdict['business'],  pdict['company'],
+                         pdict['position'],  pdict['education'],   pdict['major'],     pdict['thanks'],
+                         pdict['asked'],     pdict['answered'],    pdict['post'],      pdict['collect'],
+                         pdict['public-edit'], pdict['followed'],  pdict['follower']))
         except:
             raise
         self.con.commit()
         cor.close()
 
     def save_link(self, links):
-        print('正在保存链接的数量为: [%s]' % len(links))
-        logging.info('正在保存链接的数量为: [%s]' % len(links))
+        print('正在保存链接的数量: [%s]' % len(links))
+        logging.info('正在保存链接的数量: [%s]' % len(links))
         if not len(links):
             return
         cor = self.con.cursor()
@@ -113,8 +116,8 @@ class SqDb:
                 cor.execute("UPDATE links SET status='lock' WHERE link=?;", url)
             self.con.commit()
             cor.close()
-        print('查询到的链接为: [%s], 此时的Lock条件为: [%s]' % (res, lock))
-        logging.info('查询到的链接为: [%s], 此时的Lock条件为: [%s]' % (res, lock))
+        print('查询到的链接为: [%s], 此时的Lock为: [%s]' % (res, lock))
+        logging.info('查询到的链接为: [%s], 此时的Lock为: [%s]' % (res, lock))
         if res:
             return res if res[0] else []
 
@@ -144,7 +147,6 @@ if __name__ == '__main__':
     pdict = {
         'zhihu-ID': 'aaa',
         'home-page': 'www.baidu.com',
-        'agreed': '12',
         'gender': 'male',
         'username': 'wulala',
         'location': 'shanghai',
@@ -153,6 +155,7 @@ if __name__ == '__main__':
         'business': 'mm',
         'education': 'shanghai university',
         'major': 'chinese',
+        'agreed': '12',
         'thanks': 12,
         'asked': 22,
         'answered': '300',

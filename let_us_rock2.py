@@ -37,7 +37,7 @@ class Slut:
 
         while self.pool_left:
             while self.db.get_links_to_crawl(lock=False):
-                gevent.sleep(2)
+                gevent.sleep(1)
                 self.pool.wait_available()
                 self.single_worker()
         print('OVER!!')
@@ -74,6 +74,7 @@ class Slut:
             except sqlite3.Error as e:
                 logging.warning('Write link to DB Fail. Caused by: ' + str(e))
                 print('Write link to DB Fail. Caused by: ' + str(e))
+            gevent.sleep(1)
 
     def _write_person_to_db(self):
         while True:
@@ -86,6 +87,7 @@ class Slut:
             except sqlite3.Error as e:
                 logging.warning('Write person to DB Fail. Caused by: ' + str(e))
                 print('Write person to DB Fail. Caused by: ' + str(e))
+            gevent.sleep(1)
 
     @property
     def pool_left(self):
