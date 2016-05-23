@@ -43,26 +43,31 @@ class SqDb:
         cor.close()
 
     def save_data(self, pdict):
+        if not len(pdict):
+            return
         print('=' * 30)
         logging.info('正在保存 [%s] 的信息' % pdict['username'])
         print('正在保存 [%s] 的信息' % pdict['username'])
         print('=' * 30)
-        if not len(pdict):
-            return
         cor = self.con.cursor()
+        cor.execute("SELECT * FROM persons WHERE zhihu_ID=?;", (pdict['zhihu-ID'], ))
+        if cor.fetchall():
+            print('用户资料已存在')
+            cor.close()
+            return
         try:
             cor.execute("INSERT INTO persons "
                         "(zhihu_ID,   home_page,  gender,    username, "
                         "location,    business,   company,   position, "
                         "education,   major,      agreed,    thanks, "
-                        "asked,       answered,  post,      collect, "
-                        "public_edit, followed,  follower) "
+                        "asked,       answered,   post,      collect, "
+                        "public_edit, followed,   follower) "
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
-                        (pdict['zhihu-ID'],  pdict['home-page'],   pdict['agreed'],    pdict['gender'],
-                         pdict['username'],  pdict['location'],    pdict['business'],  pdict['company'],
-                         pdict['position'],  pdict['education'],   pdict['major'],     pdict['thanks'],
-                         pdict['asked'],     pdict['answered'],    pdict['post'],      pdict['collect'],
-                         pdict['public-edit'], pdict['followed'],  pdict['follower']))
+                        (pdict['zhihu-ID'],    pdict['home-page'],   pdict['gender'],     pdict['username'],
+                         pdict['location'],    pdict['business'],    pdict['company'],    pdict['position'],
+                         pdict['education'],   pdict['major'],       pdict['agreed'],     pdict['thanks'],
+                         pdict['asked'],       pdict['answered'],    pdict['post'],       pdict['collect'],
+                         pdict['public-edit'], pdict['followed'],    pdict['follower']))
         except:
             raise
         self.con.commit()
@@ -116,8 +121,6 @@ class SqDb:
                 cor.execute("UPDATE links SET status='lock' WHERE link=?;", url)
             self.con.commit()
             cor.close()
-        print('查询到的链接为: [%s], 此时的Lock为: [%s]' % (res, lock))
-        logging.info('查询到的链接为: [%s], 此时的Lock为: [%s]' % (res, lock))
         if res:
             return res if res[0] else []
 

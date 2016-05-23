@@ -99,6 +99,8 @@ class WebParser:
             return ''
 
     def get_user_followed(self):
+        if not self.person_dict.get('followed'):
+            return
         url = self.url + followed_url_suffix
         hd = header
         hd['Referer'] = self.url
