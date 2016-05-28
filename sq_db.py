@@ -118,7 +118,7 @@ class SqDb:
         res = cor.fetchall()
         if lock:
             for url in res:
-                cor.execute("UPDATE links SET status='lock' WHERE link=?;", url)
+                cor.execute("UPDATE links SET status='lock' WHERE link=?;", (url,))
             self.con.commit()
             cor.close()
         if res:
@@ -139,12 +139,12 @@ class SqDb:
 if __name__ == '__main__':
     db = SqDb('test1')
     big_links = [
-        {'link': 'www.baidu.com', 'status': 'non-crawled'},
-        {'link': 'www.baidu.com', 'status': 'crawled'},
-        {'link': 'www.example.com', 'status': 'non-crawled'},
-        {'link': 'www.google.com', 'status': 'non-crawled'},
-        {'link': 'www.baidu.com', 'status': 'non-crawled'},
-        {'link': 'www.bing.com', 'status': 'non-crawled'}
+        {'link': 'www.baidu.com', 'status': 'non-crawled', 'overwrite': True},
+        {'link': 'www.baidu.com', 'status': 'crawled', 'overwrite': True},
+        {'link': 'www.example.com', 'status': 'non-crawled', 'overwrite': True},
+        {'link': 'www.google.com', 'status': 'non-crawled', 'overwrite': True},
+        {'link': 'www.baidu.com', 'status': 'non-crawled', 'overwrite': False},
+        {'link': 'www.bing.com', 'status': 'non-crawled', 'overwrite': True}
     ]
 
     pdict = {

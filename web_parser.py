@@ -6,9 +6,6 @@ from lxml import html
 from client import Client
 import json
 import math
-import logging
-
-logging.basicConfig(filename=log_file, level=logging.INFO)
 
 
 class WebParser:
@@ -26,21 +23,21 @@ class WebParser:
                 doc = html.fromstring(r.text)
                 self.followed_urls += [{'link': self.url, 'status': 'crawled', 'overwrite': True}]
                 print('拉取链接 [%s] 成功.' % self.url)
-                logging.info('拉取链接 [%s] 成功.' % self.url)
             except etree.XMLSyntaxError as e:
                 print('个人首页解析失败, 原因: ' + str(e))
-                logging.error('个人首页解析失败, 原因: ' + str(e))
                 return
+        elif r.status_code == 404:
+            self.followed_urls += [{'link': self.url, 'status': 'crawled', 'overwrite': True}]
+            return 
         else:
             print('在获取链接 [%s] 时失败, code为: %s' % (self.url, r.status_code))
-            logging.warning('在获取链接 [%s] 时失败, code为: %s' % (self.url, r.status_code))
             self.followed_urls += [{'link': self.url, 'status': 'non-crawled', 'overwrite': True}]
             return
 
         left_profile = doc.xpath(u'//div[@class="zu-main-content"]')
         right_profile = doc.xpath(u'//div[@class="zu-main-sidebar"]')
 
-        self.person_dict['zhihu-ID'] = self.url[self.url.rfind('/') + 1:]
+        self.person_dict['zhihu_ID'] = self.url[self.url.rfind('/') + 1:]
         self.person_dict['home-page'] = self.url
         # 这里为什么会得到两个name, 另外一个明明不在left_profile里面的
         # 如果赞同为0, 直接返回
@@ -116,7 +113,6 @@ class WebParser:
                                        (html_doc.xpath(u'//h2[@class="zm-list-content-title"]/a/@href'))]
             except etree.XMLSyntaxError as e:
                 print('个人followed首页解析失败, 原因: ' + str(e))
-                logging.error('个人followed首页解析失败, 原因: ' + str(e))
                 return
 
             if times:
@@ -154,18 +150,13 @@ class WebParser:
                                                                u'//h2[@class="zm-list-content-title"]/a/@href'))]
                                 except etree.XMLSyntaxError as e:
                                     print('个人followed内页的第' + str(i) + '解析失败, 原因: ' + str(e))
-                                    logging.error('个人followed内页的第' + str(i) + '解析失败, 原因: ' + str(e))
                                     continue
                         else:
                             print('用户 [%s] 在爬取关注者 [第%s页] 的时候返回内容为空, 已抓取 [%s个] 用户链接'
                                   % (self.person_dict['username'], times, len(self.followed_urls)))
-                            logging.warning('用户 [%s] 在爬取关注者 [第%s页] 的时候返回内容为空, 已抓取 [%s个] 用户链接'
-                                            % (self.person_dict['username'], times, len(self.followed_urls)))
                     else:
                         print('用户 [%s] 在爬去关注者时, 抓取 [第%s页] 时失败, code为: %s'
                               % (self.person_dict['username'], times, r_inner.status_code))
-                        logging.warning('用户 [%s] 在爬去关注者时, 抓取 [第%s页] 时失败, code为: %s'
-                                        % (self.person_dict['username'], times, r_inner.status_code))
             # else:
             #     print('用户 [%s] 的关注者少于21人, 人数为: %s'
             #           % (self.person_dict['username'], self.person_dict['followed']))
