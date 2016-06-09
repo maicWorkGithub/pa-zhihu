@@ -17,7 +17,12 @@ class WebParser:
         self.url = url
 
     def get_person_info(self):
-        r = self._session.get(self.url)
+        r = None
+        try:
+            r = self._session.get(self.url)
+        except ConnectionError as e:
+            print(str(e))
+            r.status_code = 404
         if r.status_code == 200:
             try:
                 doc = html.fromstring(r.text)
@@ -103,7 +108,12 @@ class WebParser:
         hd['Referer'] = self.url
         if hd.get('X-Requested-With'):
             del hd['X-Requested-With']
-        r = self._session.get(url, headers=hd)
+        r = None
+        try:
+            r = self._session.get(url, headers=hd)
+        except ConnectionError as e:
+            print(str(e))
+            r.status_code = 404
         if r.status_code == 200:
             times = math.ceil(int(self.person_dict['followed']) / 20) - 1
             try:
@@ -133,7 +143,7 @@ class WebParser:
                 # return_people_count = 第一次len(self.followed_urls), 后面是len(json)
                 # total_returned_count = len(self.followed_urls)
                 # while total_returned_count < int(self.person_dict['followed']):
-                # 这样看起来更合理点，后面报错的页数要用一个自增的变量计算
+                # 这样看起来更合理点，不过后面报错的页数要用一个自增的变量计算
                 for i in range(times):
                     params['offset'] = (i + 1) * 20
                     data['params'] = json.dumps(params).replace(' ', '')
