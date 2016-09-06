@@ -71,11 +71,8 @@ class Client:
     def login_in_terminal(self, need_captcha=False):
         print('========= Zhihu Login ========')
 
-        # email = input('email: ')
-        # password = getpass.getpass('password: ')
-
-        email = '1764199786@qq.com'
-        password = '535271884'
+        email = input('email: ')
+        password = getpass.getpass('password: ')
 
         print('======== Logging ========')
 
