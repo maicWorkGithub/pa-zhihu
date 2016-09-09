@@ -38,6 +38,7 @@ class Single(object):
             except KeyboardInterrupt as e:
                 logger.error('base exception in while: ' + str(e))
                 self.db.save_set_file()
+                break
                 # time.sleep(1)
     
     @property
