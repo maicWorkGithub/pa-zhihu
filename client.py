@@ -1,26 +1,22 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.5
 # coding: utf-8
 import json
 import requests
 from base_setting import *
 import time
 import os
-import getpass
 from urllib.parse import urlencode
 
 
 class Client(object):
-    def __init__(self, cookies=None):
+    def __init__(self):
         self._session = requests.Session()
         self._session.headers.update(header)
         self.cookies_file = 'cookies.json'
-        if cookies is not None:
-            assert isinstance(cookies, str)
-            if len(cookies):
-                self.login_with_cookies()
-            else:
-                print('==== Cookies is broken or expire. \n Delete it and retry. ====')
-                self.create_cookies_file(self.cookies_file)
+        if os.path.isfile(self.cookies_file):
+            self.login_with_cookies()
+        else:
+            self.create_cookies_file(self.cookies_file)
     
     @staticmethod
     def get_captcha_url():

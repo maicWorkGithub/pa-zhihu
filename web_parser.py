@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.5
 # coding: utf-8
 from base_setting import *
 from lxml import etree
@@ -14,7 +14,7 @@ logger = logging.getLogger('zhihu-logger')
 
 class WebParser:
     def __init__(self, url):
-        self.client = Client('cookies.json')
+        self.client = Client()
         self._session = self.client.return_session()
         self.person_dict = {}
         self.followed_urls = []
