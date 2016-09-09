@@ -9,7 +9,7 @@ import getpass
 from urllib.parse import urlencode
 
 
-class Client:
+class Client(object):
     def __init__(self, cookies=None):
         self._session = requests.Session()
         self._session.headers.update(header)
