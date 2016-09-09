@@ -13,12 +13,14 @@ class Client(object):
     def __init__(self, cookies=None):
         self._session = requests.Session()
         self._session.headers.update(header)
+        self.cookies_file = 'cookies.json'
         if cookies is not None:
             assert isinstance(cookies, str)
             if len(cookies):
                 self.login_with_cookies()
             else:
                 print('==== Cookies is broken or expire. \n Delete it and retry. ====')
+                self.create_cookies_file(self.cookies_file)
     
     @staticmethod
     def get_captcha_url():
@@ -60,7 +62,7 @@ class Client(object):
 
         return code, msg, cookies_str
 
-    def login_with_cookies(self, cookies_file='cookies.json'):
+    def login_with_cookies(self, cookies_file=self.cookies_file):
         if os.path.isfile(cookies_file):
             # print('======== find cookies file, try login directly. ========')
             with open(cookies_file) as f:
