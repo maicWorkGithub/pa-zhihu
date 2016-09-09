@@ -102,19 +102,19 @@ class Client(object):
                 print('====== Login Failed, Message: %s ======' % msg)
         return cookies_dict
 
-    def create_cookies_file(self, file_name):
+    def create_cookies_file(self):
         """创建cookies 文件
 
         :param file_name: str
         :return: None
         """
         # test file expire of broken
-        if self.login_with_cookies(file_name):
+        if self.login_with_cookies():
             print('========cookies file exist and validly.========')
             return
         cookies_dict = self.login_in_terminal()
         if cookies_dict:
-            with open(file_name, 'w') as f:
+            with open(self.cookies_file, 'w') as f:
                 f.write(cookies_dict)
             print('====== Create Cookies File Successful.======')
         else:
