@@ -58,10 +58,10 @@ class Client(object):
 
         return code, msg, cookies_str
 
-    def login_with_cookies(self, cookies_file=self.cookies_file):
-        if os.path.isfile(cookies_file):
+    def login_with_cookies(self):
+        if os.path.isfile(self.cookies_file):
             # print('======== find cookies file, try login directly. ========')
-            with open(cookies_file) as f:
+            with open(self.cookies_file) as f:
                 cookies = f.read()
             if len(cookies) and (type(cookies) == str):
                 cookies_dict = json.loads(cookies)
