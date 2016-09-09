@@ -4,6 +4,9 @@ import sqlite3
 import os
 import logging
 from base_setting import *
+import locale
+
+def_lang, def_coding = locale.getdefaultlocale()
 
 logging.basicConfig(filename=log_file, level=logging.INFO)
 
@@ -47,7 +50,8 @@ class SqDb:
             return
         print('=' * 30)
         logging.info('正在保存 [%s] 的信息' % pdict['username'])
-        print('正在保存 [%s] 的信息' % pdict['username'])
+        # print('正在保存 [%s] 的信息' % pdict['username'])
+        print('正在保存 [%s] 的信息' % pdict['username'].encode(def_coding, 'ignore'))
         print('=' * 30)
         cor = self.con.cursor()
         cor.execute("SELECT * FROM persons WHERE zhihu_ID=?;", (pdict['zhihu-ID'], ))

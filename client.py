@@ -16,10 +16,10 @@ class Client:
         if cookies is not None:
             assert isinstance(cookies, str)
             if len(cookies):
-                self.login_with_cookies(cookies)
+                self.login_with_cookies()
             else:
-                print('==== Cookies file is broken. \n Delete it and retry. ====')
-
+                print('==== Cookies is broken or expire. \n Delete it and retry. ====')
+    
     @staticmethod
     def get_captcha_url():
         params = {
@@ -60,27 +60,36 @@ class Client:
 
         return code, msg, cookies_str
 
-    def login_with_cookies(self, cookies_file):
-        cookies = None
+    def login_with_cookies(self, cookies_file='cookies.json'):
         if os.path.isfile(cookies_file):
+            # print('======== find cookies file, try login directly. ========')
             with open(cookies_file) as f:
                 cookies = f.read()
-        cookies_dict = json.loads(cookies)
-        self._session.cookies.update(cookies_dict)
+            if len(cookies) and (type(cookies) == str):
+                cookies_dict = json.loads(cookies)
+                self._session.cookies.update(cookies_dict)
+                return True
+            else:
+                return False
+        else:
+            return False
 
-    def login_in_terminal(self, need_captcha=False):
+    def login_in_terminal(self):
         print('========= Zhihu Login ========')
 
-        email = input('email: ')
-        password = getpass.getpass('password: ')
+        # email = input('email: ')
+        # password = getpass.getpass('password: ')
 
-        print('======== Logging ========')
+        email = '842673146@qq.com'
+        password = 'zx1106'
 
+        print('======== Logging by username and password ========')
+        
         code, msg, cookies_dict = self.login(email, password)
 
         if code == 0:
             print('====== Login Successful ======')
-        elif '验证码' in json.dumps(msg):
+        elif '验证码' in msg:
             print('====== Captcha is necessary ======')
             captcha = self.get_captcha()
             with open('captcha.gif', 'wb') as f:
@@ -95,25 +104,28 @@ class Client:
                 print('====== Login Failed, Message: %s ======' % msg)
         return cookies_dict
 
-    # 第一次验证码为空,登录一次.
-    # 第二次请求验证码,登录一次
-    #
+    def create_cookies_file(self, file_name):
+        """创建cookies 文件
 
-    def create_cookies_file(self):
-        cookies_dict = self.login_in_terminal(True)
+        :param file_name: str
+        :return: None
+        """
+        # test file expire of broken
+        if self.login_with_cookies(file_name):
+            print('========cookies file exist and validly.========')
+            return
+        cookies_dict = self.login_in_terminal()
         if cookies_dict:
-            with open('cookies', 'wb') as f:
-                f.write(self.login_in_terminal())
-            print('====== Create Cookies File Successful ======')
+            with open(file_name, 'w') as f:
+                f.write(cookies_dict)
+            print('====== Create Cookies File Successful.======')
         else:
-            print('====== Can\'t Create Cookies File, Maybe Login Failed ======')
-
+            print('====== Can\'t Create Cookies File, Maybe Login Failed.======')
+    
     def return_session(self):
         return self._session
 
+
 if __name__ == '__main__':
     client = Client()
-    if os.path.isfile('cookies.json'):
-        client.login_with_cookies('cookies.json')
-    else:
-        client.create_cookies_file()
+    client.create_cookies_file('cookies.json')

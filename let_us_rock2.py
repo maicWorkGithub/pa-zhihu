@@ -7,9 +7,9 @@ monkey.patch_all()
 import gevent
 from gevent import pool
 from gevent import queue
-from web_parser import *
-from sq_db import *
-from base_setting import *
+from .web_parser import *
+from .sq_db import *
+from .base_setting import *
 import time
 import logging
 
