@@ -16,7 +16,7 @@ class Client(object):
         if os.path.isfile(self.cookies_file):
             self.login_with_cookies()
         else:
-            self.create_cookies_file(self.cookies_file)
+            self.create_cookies_file()
     
     @staticmethod
     def get_captcha_url():
@@ -126,4 +126,4 @@ class Client(object):
 
 if __name__ == '__main__':
     client = Client()
-    client.create_cookies_file('cookies.json')
+    client.create_cookies_file()
