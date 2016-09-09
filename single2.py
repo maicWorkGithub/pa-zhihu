@@ -44,13 +44,8 @@ class Single(object):
     @property
     def efficiency(self):
         _time = time.time() - self.start_time
-        logger.info('delta time: ' + str(_time))
         count = self.db.get_count('info')
         return count, count / _time
-        
-        # todo: 效率不能正常显示
-        # todo: set不能保存
-
 
 if __name__ == '__main__':
     s = Single()
