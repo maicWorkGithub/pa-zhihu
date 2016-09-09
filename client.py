@@ -75,11 +75,8 @@ class Client(object):
     def login_in_terminal(self):
         print('========= Zhihu Login ========')
 
-        # email = input('email: ')
-        # password = getpass.getpass('password: ')
-
-        email = '842673146@qq.com'
-        password = 'zx1106'
+        email = input('email: ')
+        password = getpass.getpass('password: ')
 
         print('======== Logging by username and password ========')
         

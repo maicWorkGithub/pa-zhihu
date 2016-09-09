@@ -41,7 +41,6 @@ class MonDb(object):
             return set()
     
     def save_col(self, col_name, data):
-        logger.info('save %s, data: %s' % (col_name, data))
         if len(data):
             try:
                 if col_name is 'link':
