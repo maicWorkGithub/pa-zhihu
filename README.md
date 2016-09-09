@@ -7,11 +7,12 @@
  - lxml
  - requests
  - pymysql
- - mysql
- - sqlite
+ - pymongo
  - 登陆界面，是模仿的7sdream的[zhihu-py3](https://github.com/7sDream/zhihu-py3)。
 
 ## 20160909更新
+
+**只能使用邮箱帐号登录**
 
 又重新修复了一下，错误处理比较多，应该算是一个能跑的代码了吧。
 
