@@ -119,7 +119,7 @@ class WebParser:
                 try:
                     html_doc = html.fromstring(r.text)
                     # 这里可以查看一下自己是多久被找到的。
-                    self.followed_urls += [{'_id': x,
+                    self.followed_urls += [{'_id': str(x),
                                             'status': 'non-crawled', 'overwrite': False} for x in
                                            (html_doc.xpath(u'//a[@class="zg-link author-link"]/@href'))]
                 except etree.XMLSyntaxError as e:
@@ -158,7 +158,7 @@ class WebParser:
                                     for people in content['msg']:
                                         try:
                                             html.fromstring(people)
-                                            self.followed_urls += [{'_id': x,
+                                            self.followed_urls += [{'_id': str(x),
                                                                     'status': 'non-crawled',
                                                                     'overwrite': False}
                                                                    for x in (html.fromstring(people).xpath(

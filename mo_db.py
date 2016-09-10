@@ -49,7 +49,6 @@ class MonDb(object):
                             self.update_link(i, {'status': 'crawled'})
                             continue
                         if i['_id'] not in self.user_set:
-                            logger.info(type(i['_id']))
                             self.user_set.add(i['_id'])
                             del i['overwrite']
                             try:
