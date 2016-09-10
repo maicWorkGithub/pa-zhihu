@@ -27,7 +27,7 @@ log_file = 'pa-zhihu-log.txt'
 a_e_log_file = 'all_exception.log'
 
 logger = logging.getLogger('zhihu-logger')
-a_e_logger = logging.getLevelName('all_exception')
+a_e_logger = logging.getLogger('all_exception')
 
 ch_log = logging.StreamHandler()
 file_log = logging.FileHandler(log_file, encoding='utf-8')

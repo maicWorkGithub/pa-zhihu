@@ -5,6 +5,7 @@ from base_setting import *
 import logging
 import pickle
 import os
+# import time
 
 logger = logging.getLogger('zhihu-logger')
 
@@ -20,6 +21,7 @@ class MonDb(object):
         
         self.user_set_file = 'user-set.txt'
         self.user_set = self.read_set()
+        # self.timer = time.time()
     
     def save_set_file(self):
         pickle.dump(self.user_set, open(self.user_set_file, 'wb'), 0)
@@ -41,6 +43,10 @@ class MonDb(object):
             return set()
     
     def save_col(self, col_name, data):
+        # # todo: 如果连续5分钟没有调用这个函数
+        # if time.time() - self.timer > 300:
+        #     pass
+
         if len(data):
             try:
                 if col_name is 'link':
