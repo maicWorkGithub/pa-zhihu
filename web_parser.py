@@ -40,6 +40,11 @@ class WebParser:
                 self.followed_urls += [{'_id': self.url, 'overwrite': True}]
                 return
 
+            # 如果是机构账号，直接返回
+            if len(doc.xpath(u'//a[@class="OrgIntroLink"]')):
+                self.person_dict['role'] = 'organization'
+                return
+
             left_profile = doc.xpath(u'//div[@class="zu-main-content"]')
             right_profile = doc.xpath(u'//div[@class="zu-main-sidebar"]')
 
@@ -52,7 +57,9 @@ class WebParser:
                 u'//span[@class="zm-profile-header-user-agree"]/strong/text()'))
 
             if self.person_dict['agreed'] == 0:
-                self.person_dict['active_level'] = 'fake-user'
+                return
+                # disable user level for now
+                # self.person_dict['active_level'] = 'fake-user'
             else:
                 gender_class = self._get_attr_str(left_profile[0].xpath(
                     u'//span[@class="item gender"]/i/@class'))
@@ -79,6 +86,7 @@ class WebParser:
                     u'//span[@class="education-extra item"]/@title'))
                 self.person_dict['thanks'] = self._get_attr_str(left_profile[0].xpath(
                     u'//span[@class="zm-profile-header-user-thanks"]/strong/text()'))
+                # 这里的0~4非常依赖页面结构，用key in @href会比较安全
                 self.person_dict['asked'] = left_profile[0].xpath(
                     u'//div[@class="profile-navbar clearfix"]//span[@class="num"]/text()')[0]
                 self.person_dict['answered'] = left_profile[0].xpath(

@@ -7,6 +7,7 @@ import time
 import logging
 
 logger = logging.getLogger('zhihu-logger')
+a_e_logger = logging.getLogger('all_exception')
 
 
 class Single(object):
@@ -38,10 +39,10 @@ class Single(object):
                     self.db.save_set_file()
                     self.counter = 0
             except Exception as e:
-                logger.error('all exception in while: ' + str(e))
+                a_e_logger.error('all exception: ' + str(e))
                 self.db.save_set_file()
             except KeyboardInterrupt as e:
-                logger.error('base exception in while: ' + str(e))
+                logger.error('keyboard exception: ' + str(e))
                 self.db.save_set_file()
                 break
                 # time.sleep(1)
