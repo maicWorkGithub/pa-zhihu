@@ -24,12 +24,6 @@ class MonDb(object):
         self.user_set_file = 'user-set.txt'
         self.user_set = self.read_set()
         self.timer = time.time()
-        self.no_person_saved = False
-        while True:
-            # 连续三分钟没有存储任何个人信息，就中断爬虫，
-            if time.time() - self.timer > 120:
-                self.no_person_saved = True
-            time.sleep(60)
 
     def save_set_file(self):
         pickle.dump(self.user_set, open(self.user_set_file, 'wb'), 0)
@@ -39,11 +33,11 @@ class MonDb(object):
             try:
                 with open(self.user_set_file, "rb") as file:
                     unpickler = pickle.Unpickler(file)
-                    scores = unpickler.load()
-                    if not isinstance(scores, set):
+                    urls = unpickler.load()
+                    if not isinstance(urls, set):
                         return set()
                     else:
-                        return scores
+                        return urls
             except EOFError:
                 logger.error(EOFError)
                 return set()

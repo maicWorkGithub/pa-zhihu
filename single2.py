@@ -21,7 +21,7 @@ class Single(object):
     def worker(self):
         while True:
             try:
-                if self.db.no_person_saved:
+                if time.time() - self.db.timer > 120:
                     # todo: 发送邮件提醒
                     logger.error('no user data saved for 3 minutes.')
                     break
