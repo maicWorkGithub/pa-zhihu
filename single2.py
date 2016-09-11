@@ -21,6 +21,10 @@ class Single(object):
     def worker(self):
         while True:
             try:
+                if self.db.no_person_saved:
+                    # todo: 发送邮件提醒
+                    logger.error('no user data saved for 3 minutes.')
+                    break
                 url = self.db.get_url()
                 if not url:
                     break

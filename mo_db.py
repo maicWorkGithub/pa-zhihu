@@ -1,11 +1,13 @@
 # coding: utf-8
 
-from pymongo import errors, MongoClient
-from base_setting import *
 import logging
-import pickle
 import os
-# import time
+import pickle
+import time
+
+from pymongo import errors, MongoClient
+
+from base_setting import *
 
 logger = logging.getLogger('zhihu-logger')
 
@@ -15,17 +17,23 @@ client = MongoClient("mongodb://localhost:27017/")
 class MonDb(object):
     def __init__(self):
         db = client['zhihu-crawler']
-        
+
         self.link_doc = db['link']
         self.info_doc = db['info']
-        
+
         self.user_set_file = 'user-set.txt'
         self.user_set = self.read_set()
-        # self.timer = time.time()
-    
+        self.timer = time.time()
+        self.no_person_saved = False
+        while True:
+            # 连续三分钟没有存储任何个人信息，就中断爬虫，
+            if time.time() - self.timer > 120:
+                self.no_person_saved = True
+            time.sleep(60)
+
     def save_set_file(self):
         pickle.dump(self.user_set, open(self.user_set_file, 'wb'), 0)
-    
+
     def read_set(self):
         if os.path.isfile(self.user_set_file):
             try:
@@ -41,12 +49,8 @@ class MonDb(object):
                 return set()
         else:
             return set()
-    
-    def save_col(self, col_name, data):
-        # # todo: 如果连续5分钟没有调用这个函数
-        # if time.time() - self.timer > 300:
-        #     pass
 
+    def save_col(self, col_name, data):
         if len(data):
             try:
                 if col_name is 'link':
@@ -64,6 +68,7 @@ class MonDb(object):
                         else:
                             continue
                 elif col_name is 'info':
+                    self.timer = time.time()
                     try:
                         self.info_doc.insert_one(data)
                     except errors.DuplicateKeyError as e:
@@ -73,13 +78,13 @@ class MonDb(object):
                     raise Exception('col_name is not exist')
             except errors.PyMongoError as e:
                 logger.error('function save col of ' + col_name + ': ' + str(e))
-    
+
     def update_link(self, data, update):
         try:
             self.link_doc.find_one_and_update({'_id': data['_id']}, {'$set': update})
         except errors.PyMongoError as e:
             logger.error('function update link: ' + str(e))
-    
+
     def get_count(self, col_name):
         count = 0
         try:
@@ -93,7 +98,7 @@ class MonDb(object):
         except errors.PyMongoError as e:
             logger.error('function get count: ' + str(e))
         return count
-    
+
     def get_url(self):
         url = None
         try:
@@ -106,7 +111,7 @@ class MonDb(object):
 if __name__ == '__main__':
     md = MonDb()
     # mongodb 的查找和更新
-    
+
     md.save_col('link', [
         {
             '_id': 'https://docs.python.org/3/library/pickle.html1',

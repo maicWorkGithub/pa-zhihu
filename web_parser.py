@@ -44,6 +44,10 @@ class WebParser:
             if len(doc.xpath(u'//a[@class="OrgIntroLink"]')):
                 self.person_dict['role'] = 'organization'
                 return
+            # 暂时被知乎限制的账号，页面内容为空
+
+            if len(doc.xpath(u'//div[@class="ProfileBan-wrapper"]')):
+                return
 
             left_profile = doc.xpath(u'//div[@class="zu-main-content"]')
             right_profile = doc.xpath(u'//div[@class="zu-main-sidebar"]')
