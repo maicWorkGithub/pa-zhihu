@@ -6,7 +6,9 @@ import logging
 header = {
     'X-Requested-With': 'XMLHttpRequest',
     'Referer': 'http://www.zhihu.com',
-    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:39.0)'
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) 
+                    AppleWebKit/537.36 (KHTML, like Gecko) 
+                    Chrome/53.0.2785.101 Safari/537.36'
 }
 
 # 新欢 尤雨溪, 2333
