@@ -3,6 +3,7 @@ test*
 
 cookies
 cookies*
+*.vscode
 
 *.db
 

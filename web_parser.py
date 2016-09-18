@@ -8,6 +8,7 @@ import json
 import math
 import logging
 from requests import exceptions
+from urllib import parse
 
 logger = logging.getLogger('zhihu-logger')
 
@@ -22,7 +23,7 @@ class WebParser:
 
     def get_person_info(self):
         try:
-            r = self._session.get(self.url)
+            r = self._session.get(parse.quote(self.url))
             if r.status_code == 200:
                 try:
                     doc = html.fromstring(r.text)
@@ -125,7 +126,7 @@ class WebParser:
         if hd.get('X-Requested-With'):
             del hd['X-Requested-With']
         try:
-            r = self._session.get(url, headers=hd)
+            r = self._session.get(parse.quote(url), headers=hd)
             if r.status_code == 200:
                 times = math.ceil(int(self.person_dict['followed']) / 20) - 1
                 try:
