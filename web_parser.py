@@ -23,7 +23,7 @@ class WebParser:
 
     def get_person_info(self):
         try:
-            r = self._session.get(parse.quote(self.url))
+            r = self._session.get('https://www.zhihu.com/people/' + parse.quote(self.url[self.url.rfind('/') + 1:]))
             if r.status_code == 200:
                 try:
                     doc = html.fromstring(r.text)
@@ -126,7 +126,7 @@ class WebParser:
         if hd.get('X-Requested-With'):
             del hd['X-Requested-With']
         try:
-            r = self._session.get(parse.quote(url), headers=hd)
+            r = self._session.get('https://www.zhihu.com/people/' + parse.quote(url[url.rfind('/') + 1:]), headers=hd)
             if r.status_code == 200:
                 times = math.ceil(int(self.person_dict['followed']) / 20) - 1
                 try:

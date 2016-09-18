@@ -11,7 +11,7 @@ from base_setting import *
 
 logger = logging.getLogger('zhihu-logger')
 
-client = MongoClient("mongodb://localhost:27017/")
+client = MongoClient("mongodb://localhost:27017/",  connect=False)
 
 
 class MonDb(object):
