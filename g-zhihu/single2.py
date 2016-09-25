@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # coding: utf-8
-from web_parser import *
+from .web_parser_bs import *
 from mo_db import MonDb
 from base_setting import *
 import time

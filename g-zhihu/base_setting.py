@@ -13,7 +13,7 @@ header = {
 
 # 新欢 尤雨溪, 2333
 # base_person_page = 'https://www.zhihu.com/people/evanyou'
-base_person_page = 'https://www.zhihu.com/org/mei-tuan-dian-ping-ji-shu-tuan-dui'
+base_person_page = 'https://www.zhihu.com/people/光明'
 
 zhihu_home = 'https://www.zhihu.com'
 Captcha_URL = zhihu_home + '/captcha.gif'
