@@ -134,7 +134,7 @@ class WebParser:
                     # 这里可以查看一下自己是多久被找到的。
                     self.followed_urls += [{'_id': str(x),
                                             'status': 'non-crawled', 'overwrite': False} for x in
-                                           (html_doc.xpath(u'//a[@class="zg-link author-link"]/@href'))]
+                                           (html_doc.xpath(u'//a[@class="zg-link author-link"]/@href')) if '/org/'not in x]
                 except etree.XMLSyntaxError as e:
                     print('个人followed首页解析失败, 原因: ' + str(e))
                     logger.error('个人followed首页解析失败, 原因: ' + str(e))
@@ -175,7 +175,7 @@ class WebParser:
                                                                     'status': 'non-crawled',
                                                                     'overwrite': False}
                                                                    for x in (html.fromstring(people).xpath(
-                                                    u'//a[@class="zg-link author-link"]/@href'))]
+                                                    u'//a[@class="zg-link author-link"]/@href')) if '/org/'not in x]
                                         except etree.XMLSyntaxError as e:
                                             logger.error('个人followed内页的第' + str(i) + '解析失败, 原因: ' + str(e))
                                             continue
