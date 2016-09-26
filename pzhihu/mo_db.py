@@ -1,13 +1,10 @@
+#!/usr/bin/env python3
 # coding: utf-8
-
-import logging
 import os
 import pickle
 import time
-
 from pymongo import errors, MongoClient
-
-from base_setting import *
+from .base_setting import *
 
 logger = logging.getLogger('zhihu-logger')
 

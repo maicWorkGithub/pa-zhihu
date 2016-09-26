@@ -2,7 +2,7 @@
 # coding: utf-8
 import json
 import requests
-from base_setting import *
+from .base_setting import *
 import time
 import os
 import getpass
