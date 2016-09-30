@@ -13,7 +13,7 @@ class Client(object):
     def __init__(self):
         self._session = requests.Session()
         self._session.headers.update(header)
-        self.cookies_file = 'cookies.json'
+        self.cookies_file = current_dir + '/cookies.json'
         if os.path.isfile(self.cookies_file):
             self.login_with_cookies()
         else:
