@@ -3,7 +3,7 @@
 from base_setting import *
 from bs4 import BeautifulSoup as bs
 # from bs4 import error
-from .client import Client
+from client import Client
 import json
 import math
 import logging
