@@ -38,7 +38,7 @@ file_log = logging.FileHandler(log_file, encoding='utf-8')
 a_e_log = logging.FileHandler(a_e_log_file, encoding='utf-8')
 
 fmt = "%(asctime)s || %(levelname)s || %(message)s"
-fmt2 = "%(asctime)s || %(levelname)s || %(funcName)s || %(lineno)d || %(message)s"
+fmt2 = "%(asctime)s || %(levelname)s || %(funcName)s || %(message)s"
 datefmt = "%m-%d %H:%M:%S"
 formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
 formatter2 = logging.Formatter(fmt=fmt2, datefmt=datefmt)

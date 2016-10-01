@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # coding: utf-8
+import json
+import logging
+import math
+from urllib import parse
+
 from base_setting import *
 from bs4 import BeautifulSoup as bs
-# from bs4 import error
 from client import Client
-import json
-import math
-import logging
 from requests import exceptions
-from urllib import parse
 
 logger = logging.getLogger('zhihu-logger')
 
@@ -45,7 +45,6 @@ class WebParser:
         try:
             quote_url = 'https://www.zhihu.com/people/' + parse.quote(self.url[self.url.rfind('/') + 1:])
             r = self._session.get(quote_url)
-            logger.error(self.url + ': ' + str(r.status_code))
             if r.status_code == 200:
                 try:
                     doc = bs(r.text, 'lxml')
@@ -83,13 +82,19 @@ class WebParser:
                         'female' in str(doc.find('span', class_='gender').i) else \
                         'male'
 
-                self.person_dict['username'] = doc.find('span', class_='name').text
-                self.person_dict['location'] = doc.find('span', class_='location').tittle
-                self.person_dict['business'] = doc.find('span', class_='business').tittle
-                self.person_dict['company'] = doc.find('span', class_='company').tittle
-                self.person_dict['position'] = doc.find('span', class_='position').tittle
-                self.person_dict['education'] = doc.find('span', class_='education').tittle
-                self.person_dict['major'] = doc.find('span', class_='major').tittle
+                self.person_dict['username'] = doc.find('div', class_='title-section').span.text
+                self.person_dict['location'] = doc.find('span', class_='location')['title'] \
+                    if doc.find('span', class_='location') else ''
+                self.person_dict['business'] = doc.find('span', class_='business')['title'] \
+                    if doc.find('span', class_='business') else ''
+                self.person_dict['company'] = doc.find('span', class_='company')['title'] \
+                    if doc.find('span', class_='company') else ''
+                self.person_dict['position'] = doc.find('span', class_='position')['title'] \
+                    if doc.find('span', class_='position') else ''
+                self.person_dict['education'] = doc.find('span', class_='education')['title'] \
+                    if doc.find('span', class_='education') else ''
+                self.person_dict['major'] = doc.find('span', class_='major')['title'] \
+                    if doc.find('span', class_='major') else ''
 
                 self.person_dict['thanks'] = int(doc.find('span', class_='zm-profile-header-user-thanks').strong.text)
                 items = doc.find_all('a', class_='item')
@@ -106,9 +111,9 @@ class WebParser:
                     elif 'logs' in i['href']:
                         self.person_dict['public-edit'] = int(i.span.text)
                     elif 'followees' in i['href']:
-                        self.person_dict['followed'] = int(i.span.text)
+                        self.person_dict['followed'] = int(i.strong.text)
                     elif 'followers' in i['href']:
-                        self.person_dict['follower'] = int(i.span.text)
+                        self.person_dict['follower'] = int(i.strong.text)
 
         except exceptions.ConnectionError as e:
             logger.error(str(e))
@@ -116,21 +121,21 @@ class WebParser:
     def get_user_followed(self):
         if not self.person_dict.get('followed'):
             return
-        url = self.url + followed_url_suffix
+        url = 'https://www.zhihu.com/people/' + parse.quote(self.url[self.url.rfind('/') + 1:]) + followed_url_suffix
         hd = header
-        hd['Referer'] = self.url
+        hd['Referer'] = 'https://www.zhihu.com/people/' + parse.quote(self.url[self.url.rfind('/') + 1:])
         if hd.get('X-Requested-With'):
             del hd['X-Requested-With']
         try:
-            r = self._session.get('https://www.zhihu.com/people/' + parse.quote(url[url.rfind('/') + 1:]), headers=hd)
+            r = self._session.get(url, headers=hd)
             if r.status_code == 200:
                 times = math.ceil(int(self.person_dict['followed']) / 20) - 1
                 try:
                     html_doc = bs(r.text, 'lxml')
                     # 这里可以查看一下自己是多久被找到的。
-                    self.followed_urls += [{'_id': str(x),
+                    self.followed_urls += [{'_id': str(x['href']),
                                             'status': 'non-crawled', 'overwrite': False} for x in
-                                           (html_doc.find('a', class_='author-link')['href'])]
+                                           (html_doc.find_all('a', class_='author-link'))]
                 except Exception as e:
                     print('个人followed首页解析失败, 原因: ' + str(e))
                     logger.error('个人followed首页解析失败, 原因: ' + str(e))
@@ -139,7 +144,7 @@ class WebParser:
                 if times:
                     data = {
                         'method': 'next',
-                        '_xsrf': html_doc.find('input', name='_xsrf')['value']
+                        '_xsrf': html_doc.find('input', {'name': '_xsrf'})['value']
                     }
                     params = {
                         'order_by': 'created',
@@ -166,11 +171,11 @@ class WebParser:
                                 if content['r'] == 0:
                                     for people in content['msg']:
                                         try:
-                                            self.followed_urls += [{'_id': str(x),
+                                            self.followed_urls += [{'_id': str(x['href']),
                                                                     'status': 'non-crawled',
                                                                     'overwrite': False}
                                                                    for x in (bs(people, 'lxml')
-                                                                             .find_all('a', class_='author-link')['href'])]
+                                                                             .find_all('a', class_='author-link'))]
                                         except Exception as e:
                                             logger.error('个人followed内页的第' + str(i) + '解析失败, 原因: ' + str(e))
                                             continue
@@ -191,4 +196,3 @@ if __name__ == '__main__':
     wp.get_person_info()
     wp.get_user_followed()
     print(wp.followed_urls)
-
