@@ -30,5 +30,6 @@
 - 2016-09-25 lxml在解析[这个页面](https://www.zhihu.com/people/光明) 的时候一直`etree.XMLSyntaxError: switching encoding: encoder error`, 现在不知道怎么解决, 还是用回了`BeautifulSoup`, 累~~
 - 2016-09-25 (晚上) 打包成package~~我要开始装逼了, 还未完工~~
 - [x] 添加当前文件夹和路径到log file前面
+- [ ] beautifulsoup真心慢，还是再研究研究lxml为啥编码报错好了~~
 
 
