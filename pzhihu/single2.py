@@ -5,7 +5,6 @@ from mo_db import MonDb
 from base_setting import *
 import time
 import logging
-import sys
 import traceback
 
 logger = logging.getLogger('zhihu-logger')
@@ -45,9 +44,8 @@ class Single(object):
                 if self.counter == 5:
                     self.db.save_set_file()
                     self.counter = 0
-            except Exception as e:
-                type_, value_, traceback_ = sys.exc_info()
-                a_e_logger.error(traceback.format_exception(type_, value_, traceback_))
+            except Exception:
+                a_e_logger.error(traceback.format_exc())
                 self.db.save_set_file()
             except KeyboardInterrupt as e:
                 logger.error('keyboard exception: ' + str(e))
