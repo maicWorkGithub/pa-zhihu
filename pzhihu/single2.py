@@ -37,7 +37,7 @@ class Single(object):
                 web_parser.get_user_followed()
                 
                 web_parser.person_dict['follower-url'] = \
-                    [u["_id"] for u in web_parser.followed_urls if u.get('status') is 'non-crawled']
+                    [u["_id"] for u in web_parser.followed_urls if u.get('status') == 'non-crawled']
                 
                 self.db.save_col('link', web_parser.followed_urls)
                 self.db.save_col('info', web_parser.person_dict)
