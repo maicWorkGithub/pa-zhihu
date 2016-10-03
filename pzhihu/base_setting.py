@@ -27,7 +27,7 @@ active_asked_url_suffix = '/asks'
 
 current_dir = os.getcwd()
 
-log_file = current_dir + '/pa-zhihu-log.txt'
+log_file = current_dir + '/pa-zhihu.log'
 a_e_log_file = current_dir + '/all_exception.log'
 
 logger = logging.getLogger('zhihu-logger')
