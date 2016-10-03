@@ -20,7 +20,7 @@ class WebParser:
         self.followed_urls = []
         self.url = url
         self.person_dict = {
-            'home_page': url,
+            'home-page': url,
             '_id': url[url.rfind('/') + 1:],
             'agreed': 0,
             'gender': 'intersexuality',
