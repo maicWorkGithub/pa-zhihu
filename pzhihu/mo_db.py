@@ -63,7 +63,7 @@ class MonDb(object):
                     try:
                         self.info_doc.insert_one(data)
                     except errors.DuplicateKeyError as e:
-                        logger.error('save info duplicate key: ' + str(data['home-page']))
+                        logger.error('save info duplicate key: ' + str(data['home_page']))
                 else:
                     logger.error('col_name [%s] is not exist' % col_name)
                     raise Exception('col_name is not exist')

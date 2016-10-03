@@ -66,9 +66,6 @@ class WebParser:
             if len(doc.find_all('div', class_='ProfileBan-wrapper')):
                 return
 
-            # 这里为什么会得到两个name, 另外一个明明不在left_profile里面的
-            # 如果赞同为0, 直接返回
-
             self.person_dict['agreed'] = int(doc.find('span', class_='zm-profile-header-user-agree').strong.text)
 
             # 如果赞同为0, 认为是没有价值的用户。
