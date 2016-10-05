@@ -163,6 +163,7 @@ class WebParser:
                         try:
                             r_inner = self._session.post(
                                 zhihu_home + '/node/ProfileFolloweesListV2', data=data, headers=headers)
+                            logger.info('the %d ProfileFolloweesList' %i )
                             if r_inner.status_code == 200:
                                 content = r_inner.json()
                                 if content['r'] == 0:
