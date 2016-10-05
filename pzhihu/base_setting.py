@@ -55,4 +55,4 @@ logger.addHandler(file_log)
 a_e_logger.addHandler(a_e_log)
 
 # user ID set file
-user_set = current_dir + '/user-set.text'
+user_set = current_dir + '/user-set.txt'

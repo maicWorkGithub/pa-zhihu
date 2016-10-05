@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # coding: utf-8
+import json
+import logging
+import math
+from urllib import parse
+
 from base_setting import *
+from client import Client
 from lxml import etree
 from lxml import html
-from client import Client
-import json
-import math
-import logging
 from requests import exceptions
-from urllib import parse
 
 logger = logging.getLogger('zhihu-logger')
 
@@ -20,6 +21,7 @@ class WebParser:
         self.person_dict = {}
         self.followed_urls = []
         self.url = url
+        self.parser = html.HTMLParser(encoding='utf-8')
 
     def get_person_info(self):
         try:
@@ -27,7 +29,7 @@ class WebParser:
             r = self._session.get(url_)
             if r.status_code == 200:
                 try:
-                    doc = html.fromstring(r.text)
+                    doc = html.fromstring(r.text, parser=self.parser)
                     self.followed_urls += [{'_id': self.url, 'overwrite': True}]
                     logger.info('拉取链接 [%s] 成功.' % self.url)
                 except etree.XMLSyntaxError as e:
@@ -46,28 +48,24 @@ class WebParser:
             if len(doc.xpath(u'//a[@class="OrgIntroLink"]')):
                 self.person_dict['role'] = 'organization'
                 return
-            # 暂时被知乎限制的账号，页面内容为空
 
+            # 暂时被知乎限制的账号，页面内容为空
             if len(doc.xpath(u'//div[@class="ProfileBan-wrapper"]')):
                 return
 
-            left_profile = doc.xpath(u'//div[@class="zu-main-content"]')
-            right_profile = doc.xpath(u'//div[@class="zu-main-sidebar"]')
-
             self.person_dict['home-page'] = self.url
             self.person_dict['_id'] = self.url[self.url.rfind('/') + 1:]
-            # 这里为什么会得到两个name, 另外一个明明不在left_profile里面的
             # 如果赞同为0, 直接返回
 
-            self.person_dict['agreed'] = self._get_attr_str(left_profile[0].xpath(
-                u'//span[@class="zm-profile-header-user-agree"]/strong/text()'))
+            self.person_dict['agreed'] = int(self._get_attr_str(doc.xpath(
+                u'//span[@class="zm-profile-header-user-agree"]/strong/text()')))
 
             if self.person_dict['agreed'] == 0:
                 return
                 # disable user level for now
                 # self.person_dict['active_level'] = 'fake-user'
             else:
-                gender_class = self._get_attr_str(left_profile[0].xpath(
+                gender_class = self._get_attr_str(doc.xpath(
                     u'//span[@class="item gender"]/i/@class'))
                 if 'male' in gender_class:
                     self.person_dict['gender'] = 'male'
@@ -75,38 +73,35 @@ class WebParser:
                     self.person_dict['gender'] = 'female'
                 else:
                     self.person_dict['gender'] = 'intersexuality'
-    
-                self.person_dict['username'] = self._get_attr_str(left_profile[0].xpath(
+
+                self.person_dict['username'] = self._get_attr_str(doc.xpath(
                     u'//div[@class="zm-profile-header-main"]//span[@class="name"]/text()'))
-                self.person_dict['location'] = self._get_attr_str(left_profile[0].xpath(
+                self.person_dict['location'] = self._get_attr_str(doc.xpath(
                     u'//span[@class="location item"]/@title'))
-                self.person_dict['business'] = self._get_attr_str(left_profile[0].xpath(
+                self.person_dict['business'] = self._get_attr_str(doc.xpath(
                     u'//span[@class="business item"]/@title'))
-                self.person_dict['company'] = self._get_attr_str(left_profile[0].xpath(
+                self.person_dict['company'] = self._get_attr_str(doc.xpath(
                     u'//span[@class="employment item"]/@title'))
-                self.person_dict['position'] = self._get_attr_str(left_profile[0].xpath(
+                self.person_dict['position'] = self._get_attr_str(doc.xpath(
                     u'//span[@class="position item"]/@title'))
-                self.person_dict['education'] = self._get_attr_str(left_profile[0].xpath(
+                self.person_dict['education'] = self._get_attr_str(doc.xpath(
                     u'//span[@class="education item"]/@title'))
-                self.person_dict['major'] = self._get_attr_str(left_profile[0].xpath(
+                self.person_dict['major'] = self._get_attr_str(doc.xpath(
                     u'//span[@class="education-extra item"]/@title'))
-                self.person_dict['thanks'] = self._get_attr_str(left_profile[0].xpath(
-                    u'//span[@class="zm-profile-header-user-thanks"]/strong/text()'))
+                self.person_dict['thanks'] = int(self._get_attr_str(doc.xpath(
+                    u'//span[@class="zm-profile-header-user-thanks"]/strong/text()')))
                 # 这里的0~4非常依赖页面结构，用key in @href会比较安全
-                self.person_dict['asked'] = left_profile[0].xpath(
-                    u'//div[@class="profile-navbar clearfix"]//span[@class="num"]/text()')[0]
-                self.person_dict['answered'] = left_profile[0].xpath(
-                    u'//div[@class="profile-navbar clearfix"]//span[@class="num"]/text()')[1]
-                self.person_dict['post'] = left_profile[0].xpath(
-                    u'//div[@class="profile-navbar clearfix"]//span[@class="num"]/text()')[2]
-                self.person_dict['collect'] = left_profile[0].xpath(
-                    u'//div[@class="profile-navbar clearfix"]//span[@class="num"]/text()')[3]
-                self.person_dict['public-edit'] = left_profile[0].xpath(
-                    u'//div[@class="profile-navbar clearfix"]//span[@class="num"]/text()')[4]
-                self.person_dict['followed'] = right_profile[0].xpath(
-                    u'//div[@class="zm-profile-side-following zg-clear"]/a[@class="item"]/strong/text()')[0]
-                self.person_dict['follower'] = right_profile[0].xpath(
-                    u'//div[@class="zm-profile-side-following zg-clear"]/a[@class="item"]/strong/text()')[1]
+                prop_items = doc.xpath(u'//div[@class="profile-navbar clearfix"]//span[@class="num"]/text()')
+                prop_items += doc.xpath(
+                    u'//div[@class="zm-profile-side-following zg-clear"]/a[@class="item"]/strong/text()')
+                self.person_dict['asked'] = int(prop_items[0])
+                self.person_dict['answered'] = int(prop_items[1])
+                self.person_dict['post'] = int(prop_items[2])
+                self.person_dict['collect'] = int(prop_items[3])
+                self.person_dict['public-edit'] = int(prop_items[4])
+
+                self.person_dict['followed'] = int(prop_items[5])
+                self.person_dict['follower'] = int(prop_items[6])
 
         except exceptions.ConnectionError as e:
             logger.error(str(e))
@@ -131,7 +126,7 @@ class WebParser:
             if r.status_code == 200:
                 times = math.ceil(int(self.person_dict['followed']) / 20) - 1
                 try:
-                    html_doc = html.fromstring(r.text)
+                    html_doc = html.fromstring(r.text, parser=self.parser)
                     # 这里可以查看一下自己是多久被找到的。
                     self.followed_urls += [{'_id': str(x),
                                             'status': 'non-crawled', 'overwrite': False} for x in
@@ -171,12 +166,13 @@ class WebParser:
                                 if content['r'] == 0:
                                     for people in content['msg']:
                                         try:
-                                            html.fromstring(people)
+                                            html.fromstring(people, parser=self.parser)
                                             self.followed_urls += [{'_id': str(x),
                                                                     'status': 'non-crawled',
                                                                     'overwrite': False}
-                                                                   for x in (html.fromstring(people).xpath(
-                                                    u'//a[@class="zg-link author-link"]/@href')) if '/org/'not in x]
+                                                                   for x in (html.fromstring(people, parser=self.parser)
+                                                                             .xpath(u'//a[@class="zg-link author-link"]'
+                                                                                    u'/@href')) if '/org/' not in x]
                                         except etree.XMLSyntaxError as e:
                                             logger.error('个人followed内页的第' + str(i) + '解析失败, 原因: ' + str(e))
                                             continue

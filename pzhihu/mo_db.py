@@ -3,8 +3,9 @@
 import os
 import pickle
 import time
-from pymongo import errors, MongoClient
+
 from base_setting import *
+from pymongo import errors, MongoClient
 
 logger = logging.getLogger('zhihu-logger')
 
@@ -18,7 +19,7 @@ class MonDb(object):
         self.link_doc = db['link']
         self.info_doc = db['info']
 
-        self.user_set_file = 'user-set.txt'
+        self.user_set_file = user_set
         self.user_set = self.read_set()
         self.timer = time.time()
 
@@ -94,6 +95,9 @@ class MonDb(object):
         url = None
         try:
             url = self.link_doc.find_one({'status': 'non-crawled'})['_id']
+            if '.com/org' in url:
+                self.update_link(url, {'status': 'dammit'})
+                self.get_url()
         except errors.PyMongoError as e:
             logger.error('function get url: ' + str(e))
         return url
