@@ -29,7 +29,7 @@ class WebParser:
             r = self._session.get(url_)
             if r.status_code == 200:
                 try:
-                    doc = html.fromstring(r.text, parser=self.parser)
+                    doc = html.fromstring(r.content, parser=self.parser)
                     self.followed_urls += [{'_id': self.url, 'overwrite': True}]
                     logger.info('拉取链接 [%s] 成功.' % self.url)
                 except etree.XMLSyntaxError as e:
@@ -55,8 +55,8 @@ class WebParser:
 
             self.person_dict['home-page'] = self.url
             self.person_dict['_id'] = self.url[self.url.rfind('/') + 1:]
-            # 如果赞同为0, 直接返回
 
+            # 如果赞同为0, 直接返回
             self.person_dict['agreed'] = int(self._get_attr_str(doc.xpath(
                 u'//span[@class="zm-profile-header-user-agree"]/strong/text()')))
 
@@ -126,7 +126,7 @@ class WebParser:
             if r.status_code == 200:
                 times = math.ceil(int(self.person_dict['followed']) / 20) - 1
                 try:
-                    html_doc = html.fromstring(r.text, parser=self.parser)
+                    html_doc = html.fromstring(r.content, parser=self.parser)
                     # 这里可以查看一下自己是多久被找到的。
                     self.followed_urls += [{'_id': str(x),
                                             'status': 'non-crawled', 'overwrite': False} for x in
