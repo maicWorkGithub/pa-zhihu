@@ -57,7 +57,7 @@ class Single(object):
     def efficiency(self):
         _time = time.time() - self.start_time
         count = self.db.get_count('info')
-        return count, count / _time
+        return count, (count / _time) * 60
 
 if __name__ == '__main__':
     s = Single()
