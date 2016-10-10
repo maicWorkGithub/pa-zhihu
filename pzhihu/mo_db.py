@@ -29,7 +29,7 @@ class MonDb(object):
 
     def get_set(self):
         try:
-            return set([i['_id'] for i in self.link_doc.find({"status": "non-crawled"})])
+            return set([i['_id'] for i in self.link_doc.find()])
         except errors.PyMongoError as e:
             logger.error('[get set]: ' + str(e))
             return set()
