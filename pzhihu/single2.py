@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # coding: utf-8
-from web_parser_lxml import *
-from mo_db import MonDb
-from base_setting import *
-import time
 import logging
+import time
 import traceback
+
+from base_setting import *
+from mo_db import MonDb
+from web_parser_bs import *
 
 logger = logging.getLogger('zhihu-logger')
 a_e_logger = logging.getLogger('all_exception')
@@ -46,6 +47,7 @@ class Single(object):
                     self.counter = 0
             except Exception:
                 a_e_logger.error(traceback.format_exc())
+                logger.error(traceback.format_exc())
                 self.db.save_set_file()
             except KeyboardInterrupt as e:
                 logger.error('keyboard exception: ' + str(e))

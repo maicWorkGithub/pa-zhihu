@@ -14,19 +14,18 @@ from requests import exceptions
 logger = logging.getLogger('zhihu-logger')
 
 
-class WebParser:
+class WebParser(object):
     def __init__(self, url):
         self.client = Client()
         self._session = self.client.return_session()
         self.person_dict = {}
         self.followed_urls = []
-        self.url = url
+        self.url = 'https://www.zhihu.com/people/' + parse.quote(url[url.rfind('/') + 1:])
         self.parser = html.HTMLParser(encoding='utf-8')
 
     def get_person_info(self):
         try:
-            url_ = 'https://www.zhihu.com/people/' + parse.quote(self.url[self.url.rfind('/') + 1:])
-            r = self._session.get(url_)
+            r = self._session.get(self.url)
             if r.status_code == 200:
                 try:
                     doc = html.fromstring(r.content, parser=self.parser)
@@ -122,7 +121,7 @@ class WebParser:
         if hd.get('X-Requested-With'):
             del hd['X-Requested-With']
         try:
-            r = self._session.get('https://www.zhihu.com/people/' + parse.quote(url[url.rfind('/') + 1:]), headers=hd)
+            r = self._session.get(url, headers=hd)
             if r.status_code == 200:
                 times = math.ceil(int(self.person_dict['followed']) / 20) - 1
                 try:
@@ -130,12 +129,13 @@ class WebParser:
                     # 这里可以查看一下自己是多久被找到的。
                     self.followed_urls += [{'_id': str(x),
                                             'status': 'non-crawled', 'overwrite': False} for x in
-                                           (html_doc.xpath(u'//a[@class="zg-link author-link"]/@href')) if '/org/'not in x]
+                                           (html_doc.xpath(u'//a[@class="zg-link author-link"]/@href')) if
+                                           '/org/' not in x]
                 except etree.XMLSyntaxError as e:
                     print('个人followed首页解析失败, 原因: ' + str(e))
                     logger.error('个人followed首页解析失败, 原因: ' + str(e))
                     return
-    
+
                 if times:
                     data = {
                         'method': 'next',
@@ -146,7 +146,7 @@ class WebParser:
                         'hash_id': json.loads(self._get_attr_str(html_doc.xpath(
                             u'//div[@class="zh-general-list clearfix"]/@data-init')))['params']['hash_id']
                     }
-        
+
                     headers = header
                     headers['Referer'] = url
                     headers['Host'] = 'www.zhihu.com'
@@ -166,15 +166,15 @@ class WebParser:
                                 if content['r'] == 0:
                                     for people in content['msg']:
                                         try:
-                                            html.fromstring(people, parser=self.parser)
-                                            self.followed_urls += [{'_id': str(x),
-                                                                    'status': 'non-crawled',
-                                                                    'overwrite': False}
-                                                                   for x in (html.fromstring(people, parser=self.parser)
-                                                                             .xpath(u'//a[@class="zg-link author-link"]'
-                                                                                    u'/@href')) if '/org/' not in x]
+                                            people_etree = html.fromstring(people, parser=self.parser)
+                                            url = people_etree.xpath(u'//a[@class="zg-link author-link"]/@href')[0]
+                                            if '/org/' not in url:
+                                                self.followed_urls += [{'_id': url, 'status': 'non-crawled',
+                                                                        'overwrite': False}]
                                         except etree.XMLSyntaxError as e:
-                                            logger.error('个人followed内页的第' + str(i) + '解析失败, 原因: ' + str(e))
+                                            logger.info(people)
+                                            logger.info(type(people))
+                                            logger.error('个人followed内页的第' + str(i) + '页解析失败, 原因: ' + str(e))
                                             continue
                                 else:
                                     logger.warning('用户 [%s] 在爬取关注者 [第%s页] 的时候返回内容为空, 已抓取 [%s个] 用户链接'
@@ -196,4 +196,3 @@ if __name__ == '__main__':
     wp.get_person_info()
     wp.get_user_followed()
     print(wp.followed_urls)
-

@@ -13,7 +13,7 @@ header = {
 
 # 新欢 尤雨溪, 2333
 # base_person_page = 'https://www.zhihu.com/people/evanyou'
-base_person_page = 'https://www.zhihu.com/people/光明'
+base_person_page = 'https://www.zhihu.com/people/lai-long-1'
 
 zhihu_home = 'https://www.zhihu.com'
 Captcha_URL = zhihu_home + '/captcha.gif'
@@ -38,7 +38,7 @@ file_log = logging.FileHandler(log_file, encoding='utf-8')
 a_e_log = logging.FileHandler(a_e_log_file, encoding='utf-8')
 
 fmt = "%(asctime)s || %(levelname)s || %(message)s"
-fmt2 = "%(asctime)s || %(levelname)s || %(funcName)s || %(message)s"
+fmt2 = "%(asctime)s || %(levelname)s || %(message)s"
 datefmt = "%m-%d %H:%M:%S"
 formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
 formatter2 = logging.Formatter(fmt=fmt2, datefmt=datefmt)

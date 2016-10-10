@@ -96,7 +96,7 @@ class MonDb(object):
         try:
             url = self.link_doc.find_one({'status': 'non-crawled'})['_id']
             if '.com/org' in url:
-                self.update_link(url, {'status': 'dammit'})
+                self.update_link({"_id": url}, {'status': 'dammit'})
                 self.get_url()
         except errors.PyMongoError as e:
             logger.error('function get url: ' + str(e))
