@@ -19,12 +19,20 @@ class MonDb(object):
         self.link_doc = db['link']
         self.info_doc = db['info']
 
-        self.user_set_file = user_set
-        self.user_set = self.read_set()
+        # self.user_set_file = user_set
+        # self.user_set = self.read_set()
+        self.user_set = self.get_set()
         self.timer = time.time()
 
     def save_set_file(self):
         pickle.dump(self.user_set, open(self.user_set_file, 'wb'), 0)
+
+    def get_set(self):
+        try:
+            return set([i['_id'] for i in self.link_doc.find({"status": "non-crawled"})])
+        except errors.PyMongoError as e:
+            logger.error('[get set]: ' + str(e))
+            return set()
 
     def read_set(self):
         if os.path.isfile(self.user_set_file):
@@ -56,7 +64,7 @@ class MonDb(object):
                             try:
                                 self.link_doc.insert_one(i)
                             except errors.DuplicateKeyError as e:
-                                logger.error('save link duplicate key: ' + str(i['_id']))
+                                logger.error('[save link] duplicate key: ' + str(i['_id']))
                         else:
                             continue
                 elif col_name is 'info':
@@ -64,18 +72,18 @@ class MonDb(object):
                     try:
                         self.info_doc.insert_one(data)
                     except errors.DuplicateKeyError as e:
-                        logger.error('save info duplicate key: ' + str(data['home-page']))
+                        logger.error('[save info] duplicate key: ' + str(data['home-page']))
                 else:
                     logger.error('col_name [%s] is not exist' % col_name)
                     raise Exception('col_name is not exist')
             except errors.PyMongoError as e:
-                logger.error('function save col of ' + col_name + ': ' + str(e))
+                logger.error('[save col]: ' + col_name + ': ' + str(e))
 
     def update_link(self, data, update):
         try:
             self.link_doc.find_one_and_update({'_id': data['_id']}, {'$set': update})
         except errors.PyMongoError as e:
-            logger.error('function update link: ' + str(e))
+            logger.error('[update link]: ' + str(e))
 
     def get_count(self, col_name):
         count = 0
@@ -88,18 +96,18 @@ class MonDb(object):
                 logger.error('col_name [%s] is not exist' % col_name)
                 raise Exception('col_name is not exist')
         except errors.PyMongoError as e:
-            logger.error('function get count: ' + str(e))
+            logger.error('[get count]: ' + str(e))
         return count
 
     def get_url(self):
         url = None
         try:
             url = self.link_doc.find_one({'status': 'non-crawled'})['_id']
-            if '.com/org' in url:
+            if '.com/org' in url or '.com/topic' in url:
                 self.update_link({"_id": url}, {'status': 'dammit'})
                 self.get_url()
         except errors.PyMongoError as e:
-            logger.error('function get url: ' + str(e))
+            logger.error('[get url]: ' + str(e))
         return url
 
 

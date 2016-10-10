@@ -12,8 +12,7 @@ header = {
 }
 
 # 新欢 尤雨溪, 2333
-# base_person_page = 'https://www.zhihu.com/people/evanyou'
-base_person_page = 'https://www.zhihu.com/people/lai-long-1'
+base_person_page = 'https://www.zhihu.com/people/evanyou'
 
 zhihu_home = 'https://www.zhihu.com'
 Captcha_URL = zhihu_home + '/captcha.gif'
@@ -55,4 +54,4 @@ logger.addHandler(file_log)
 a_e_logger.addHandler(a_e_log)
 
 # user ID set file
-user_set = current_dir + '/user-set.txt'
+# user_set = current_dir + '/user-set.txt'

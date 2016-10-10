@@ -17,7 +17,6 @@ class Single(object):
         self.db = MonDb()
         self.db.save_col('link', [{'_id': base_person_page, 'status': 'non-crawled', 'overwrite': False}])
         self.start_time = time.time()
-        self.user_set = 'user-set.txt'
         self.counter = 0
     
     def worker(self):
@@ -48,10 +47,10 @@ class Single(object):
             except Exception:
                 a_e_logger.error(traceback.format_exc())
                 logger.error(traceback.format_exc())
-                self.db.save_set_file()
+                # self.db.save_set_file()
             except KeyboardInterrupt as e:
                 logger.error('keyboard exception: ' + str(e))
-                self.db.save_set_file()
+                # self.db.save_set_file()
                 break
                 # time.sleep(1)
     
