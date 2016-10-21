@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 # coding: utf-8
-import os
-import pickle
 import time
 
 from base_setting import *
@@ -18,36 +16,14 @@ class MonDb(object):
 
         self.link_doc = db['link']
         self.info_doc = db['info']
-
-        # self.user_set_file = user_set
-        # self.user_set = self.read_set()
         self.user_set = self.get_set()
         self.timer = time.time()
-
-    def save_set_file(self):
-        pickle.dump(self.user_set, open(self.user_set_file, 'wb'), 0)
 
     def get_set(self):
         try:
             return set([i['_id'] for i in self.link_doc.find()])
         except errors.PyMongoError as e:
             logger.error('[get set]: ' + str(e))
-            return set()
-
-    def read_set(self):
-        if os.path.isfile(self.user_set_file):
-            try:
-                with open(self.user_set_file, "rb") as file:
-                    unpickler = pickle.Unpickler(file)
-                    urls = unpickler.load()
-                    if not isinstance(urls, set):
-                        return set()
-                    else:
-                        return urls
-            except EOFError:
-                logger.error(EOFError)
-                return set()
-        else:
             return set()
 
     def save_col(self, col_name, data):
