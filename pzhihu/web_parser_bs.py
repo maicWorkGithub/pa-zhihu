@@ -19,6 +19,7 @@ class WebParser:
         self._session = self.client.return_session()
         self.followed_urls = []
         self.url = url
+        self.quote_url = 'https://www.zhihu.com/people/' + parse.quote(url[url.rfind('/') + 1:])
         self.person_dict = {
             'home-page': url,
             '_id': url[url.rfind('/') + 1:],
@@ -43,22 +44,17 @@ class WebParser:
 
     def get_person_info(self):
         try:
-            quote_url = 'https://www.zhihu.com/people/' + parse.quote(self.url[self.url.rfind('/') + 1:])
-            r = self._session.get(quote_url)
+            r = self._session.get(self.quote_url)
             if r.status_code == 200:
                 try:
                     doc = bs(r.text, 'lxml')
                     self.followed_urls += [{'_id': self.url, 'overwrite': True}]
-                    logger.info('拉取链接 [%s] 成功.' % self.url)
+                    logger.info('get [%s] success.' % self.url)
                 except Exception as e:
-                    logger.error('个人首页解析失败, 原因: ' + str(e))
+                    logger.error('get person home failed, caused by: ' + str(e))
                     return
-            elif r.status_code == 404:
-                self.followed_urls += [{'_id': self.url, 'overwrite': True}]
-                logger.warning('在获取链接 [%s] 时失败, code为: %s' % (self.url, r.status_code))
-                return
             else:
-                logger.warning('在获取链接 [%s] 时失败, code为: %s' % (self.url, r.status_code))
+                logger.warning('get [%s] failed, code: %s' % (self.url, r.status_code))
                 self.followed_urls += [{'_id': self.url, 'overwrite': True}]
                 return
 
@@ -118,9 +114,9 @@ class WebParser:
     def get_user_followed(self):
         if not self.person_dict.get('followed'):
             return
-        url = 'https://www.zhihu.com/people/' + parse.quote(self.url[self.url.rfind('/') + 1:]) + followed_url_suffix
+        url = self.quote_url + followed_url_suffix
         hd = header
-        hd['Referer'] = 'https://www.zhihu.com/people/' + parse.quote(self.url[self.url.rfind('/') + 1:])
+        hd['Referer'] = self.quote_url
         if hd.get('X-Requested-With'):
             del hd['X-Requested-With']
         try:
@@ -190,7 +186,7 @@ class WebParser:
 
 
 if __name__ == '__main__':
-    wp = WebParser(base_person_page)
+    wp = WebParser('https://www.zhihu.com/people/raspberrycollections1')
     wp.get_person_info()
     wp.get_user_followed()
     print(wp.followed_urls)
