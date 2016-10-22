@@ -93,19 +93,19 @@ class WebParser:
                 items = doc.find_all('a', class_='item')
                 for i in items:
                     # 定义一个函数, 把i.href传进去更好看一点
-                    if i['href'].endswith('asks'):
+                    if i['href'].endswith('/asks'):
                         self.person_dict['asked'] = int(i.span.text)
-                    elif i['href'].endswith('answers'):
+                    elif i['href'].endswith('/answers'):
                         self.person_dict['answered'] = int(i.span.text)
-                    elif i['href'].endswith('posts'):
+                    elif i['href'].endswith('/posts'):
                         self.person_dict['post'] = int(i.span.text)
-                    elif i['href'].endswith('collections'):
+                    elif i['href'].endswith('/collections'):
                         self.person_dict['collect'] = int(i.span.text)
-                    elif i['href'].endswith('logs'):
+                    elif i['href'].endswith('/logs'):
                         self.person_dict['public-edit'] = int(i.span.text)
-                    elif i['href'].endswith('followees'):
+                    elif i['href'].endswith('/followees'):
                         self.person_dict['followed'] = int(i.strong.text)
-                    elif i['href'].endswith('followers'):
+                    elif i['href'].endswith('/followers'):
                         self.person_dict['follower'] = int(i.strong.text)
 
         except exceptions.ConnectionError as e:
@@ -186,7 +186,7 @@ class WebParser:
 
 
 if __name__ == '__main__':
-    wp = WebParser('https://www.zhihu.com/people/raspberrycollections1')
+    wp = WebParser('https://www.zhihu.com/people/raspberrycollections')
     wp.get_person_info()
     wp.get_user_followed()
-    print(wp.followed_urls)
+    print(wp.person_dict)
