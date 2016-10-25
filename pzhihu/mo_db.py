@@ -32,7 +32,7 @@ class MonDb(object):
                 if col_name is 'link':
                     for i in data:
                         if i.get('overwrite') and i['overwrite']:
-                            self.update_link(i, {'status': 'crawled'})
+                            self.update_link(i, {'status': i['status']})
                             continue
                         if i['_id'] not in self.user_set:
                             self.user_set.add(i['_id'])
