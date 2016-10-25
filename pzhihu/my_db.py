@@ -3,59 +3,51 @@ import pymysql
 
 
 class MyDB:
-    def __init__(self, identity, droptb=False):
-        self.person_tb_name = 'person' + '_' + str(identity)
-        self.link_tb_name = 'link' + '_' + str(identity)
-        self.table_id = identity
+    def __init__(self):
+        self.info = 'info'
+        self.link = 'link'
         self.con = pymysql.connect(
-            host='localhost', user='maic', passwd='1111', db='zhihu',
+            host='localhost', user='maic', passwd='1111', db='zhihu_crawler',
             cursorclass=pymysql.cursors.DictCursor)
         try:
             with self.con.cursor() as cor:
-                if droptb:
-                    cor.execute('DROP TABLE IF EXISTS %s;' % (self.person_tb_name, ))
-                    cor.execute('DROP TABLE IF EXISTS %s;' % (self.link_tb_name, ))
-                cor.execute('CREATE TABLE IF NOT EXISTS %s ('
-                            "zhihu_ID    VARCHAR (50) PRIMARY KEY, "
-                            "home_page   VARCHAR (200), "
-                            "gender      VARCHAR (10), "
-                            "username    VARCHAR (30), "
-                            "location    VARCHAR (30), "
-                            "business    VARCHAR (30), "
-                            "company     VARCHAR (50), "
-                            "`position`  VARCHAR (30), "
-                            "education   VARCHAR (30), "
-                            "major       VARCHAR (30), "
-                            "agreed      INT, "
-                            "thanks      INT, "
-                            "asked       INT, "
-                            "answered    INT, "
-                            "post        INT, "
-                            "collect     INT, "
-                            "public_edit INT, "
-                            "followed    INT, "
-                            "follower    INT)" % (self.person_tb_name,))
-
+                create_info_sql = "CREATE TABLE IF NOT EXISTS %s (" \
+                                  "id  VARCHAR (50) NOT NULL PRIMARY KEY, " \
+                                  "home_page   VARCHAR (200) NOT NULL , " \
+                                  "gender      VARCHAR (10), " \
+                                  "username    VARCHAR (30), " \
+                                  "location    VARCHAR (30), " \
+                                  "business    VARCHAR (30), " \
+                                  "company     VARCHAR (50), " \
+                                  "`position`  VARCHAR (30), " \
+                                  "education   VARCHAR (30), " \
+                                  "major       VARCHAR (30), " \
+                                  "agreed      INT, " \
+                                  "thanks      INT, " \
+                                  "asked       INT, " \
+                                  "answered    INT, " \
+                                  "post        INT, " \
+                                  "collect     INT, " \
+                                  "public_edit INT, " \
+                                  "followed    INT, " \
+                                  "`follower`    INT" % (self.info,)
+    
+                cor.execute(create_info_sql)
+            
             with self.con.cursor() as cor:
                 cor.execute("CREATE TABLE IF NOT EXISTS %s ("
-                            "link   VARCHAR (200) PRIMARY KEY, "
-                            "status VARCHAR (20))" % (self.link_tb_name,))
+                            "link   VARCHAR (200) NOT NULL PRIMARY KEY, "
+                            "`status` VARCHAR (20)) NOT NULL " % (self.link,))
             self.con.commit()
             cor.close()
-
-            # with self.con.cursor() as cor:
-            #     cor.execute("CREATE TABLE IF NOT EXISTS social ("
-            #                 "username   VARCHAR (30) PRIMARY KEY, "
-            #                 "linked_people VARCHAR (255))")
-            # self.con.commit()
         except Exception:
             raise
-
+    
     def save_person(self, pd):
         if not len(pd):
             return
         cor = self.con.cursor()
-        sql = "SELECT * FROM %s WHERE zhihu_ID='%s';" % (self.person_tb_name, pd['zhihu_ID'])
+        sql = "SELECT * FROM %s WHERE `id`='%s';" % (self.info, pd['id'])
         print('save person sql, check exists or not: ' + str(sql))
         cor.execute(sql)
         res = cor.fetchall()
@@ -70,7 +62,7 @@ class MyDB:
         try:
             with self.con.cursor() as cor:
                 cor.execute("INSERT INTO %s "
-                            "(zhihu_ID,   home_page,  gender,    username, "
+                            "(id,   home_page,  gender,    username, "
                             "location,    business,   company,   `position`, "
                             "education,   major,      agreed,    thanks, "
                             "asked,       answered,   post,      collect, "
@@ -80,17 +72,17 @@ class MyDB:
                             " \'%s\', \'%s\', \'%d\', \'%d\',"
                             " \'%d\', \'%d\', \'%d\', \'%d\',"
                             " \'%d\', \'%d\', \'%d\');"
-                            % (self.person_tb_name,
-                               pd['zhihu_ID'],  pd['home-page'], pd['gender'], pd['username'],
-                               pd['location'],  pd['business'], pd['company'], pd['position'],
+                            % (self.info,
+                               pd['id'], pd['home_page'], pd['gender'], pd['username'],
+                               pd['location'], pd['business'], pd['company'], pd['position'],
                                pd['education'], pd['major'], int(pd['agreed']), int(pd['thanks']),
                                int(pd['asked']), int(pd['answered']), int(pd['post']), int(pd['collect']),
-                               int(pd['public-edit']), int(pd['followed']), int(pd['follower'])))
+                               int(pd['public_edit']), int(pd['followed']), int(pd['follower'])))
             self.con.commit()
             cor.close()
         except Exception:
             raise
-
+    
     def save_links(self, links):
         if not len(links):
             return
@@ -102,23 +94,25 @@ class MyDB:
                     if code == 'same':
                         continue
                     elif code == 'diff':
-                        sql1 = "UPDATE %s SET status=\'%s\' WHERE link='%s';" % (self.link_tb_name, link['status'], link['link'])
+                        sql1 = "UPDATE %s SET status=\'%s\' WHERE link='%s';" % (
+                            self.link, link['status'], link['link'])
                         print('save link, update status sql: ' + str(sql1))
                         cor.execute(sql1)
                         self.con.commit()
                     else:
-                        sql2 = "INSERT INTO %s (link, status) VALUES (\'%s\', \'%s\');" % (self.link_tb_name, link['link'], link['status'])
+                        sql2 = "INSERT INTO %s (link, status) VALUES (\'%s\', \'%s\');" % (
+                            self.link, link['link'], link['status'])
                         print('save link, insert new sql: ' + sql2)
                         cor.execute(sql2)
                         self.con.commit()
                 cor.close()
         except Exception:
             raise
-
+    
     def is_exist_link(self, link):
         try:
             with self.con.cursor() as cor:
-                sql = "SELECT status FROM %s WHERE link='%s';" % (self.link_tb_name, link['link'])
+                sql = "SELECT status FROM %s WHERE link='%s';" % (self.link, link['link'])
                 print('check is exists link, sql: ' + sql)
                 cor.execute(sql)
                 result = cor.fetchall()
@@ -134,28 +128,28 @@ class MyDB:
                     return 'new'
         except Exception:
             raise
-
+    
     def get_data_count(self, tb_name):
         try:
             with self.con.cursor() as cor:
-                sql = "SELECT COUNT(*) FROM %s;" % (tb_name + '_' + str(self.table_id), )
+                sql = "SELECT COUNT(*) FROM %s;" % (tb_name + '_' + str(self.table_id),)
                 print('get data count, sql: ' + str(sql))
                 cor.execute(sql)
                 res = cor.fetchall()
                 return res[0][0] if res[0][0] else 0
         except Exception:
             raise
-
+    
     def get_links_to_crawl(self, num=1, lock=True):
         try:
             with self.con.cursor() as cor:
-                sql1 = "SELECT link FROM %s WHERE status='non-crawled' LIMIT %d;" % (self.link_tb_name, num)
+                sql1 = "SELECT link FROM %s WHERE status='non-crawled' LIMIT %d;" % (self.link, num)
                 print('get link to crawled, query sql: ' + str(sql1))
                 cor.execute(sql1)
                 res = cor.fetchall()
                 if lock:
                     for url in res:
-                        sql2 = "UPDATE %s SET status='lock' WHERE link=\'%s\';" % (self.link_tb_name, url['link'])
+                        sql2 = "UPDATE %s SET status='lock' WHERE link=\'%s\';" % (self.link, url['link'])
                         print('get link to crawled, lock link sql: ' + str(sql2))
                         cor.execute(sql2)
                     self.con.commit()
@@ -220,5 +214,3 @@ if __name__ == '__main__':
 
     my_db.save_links(big_links)
     my_db.save_person(pdict)
-
-

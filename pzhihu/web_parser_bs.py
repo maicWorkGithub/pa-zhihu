@@ -21,8 +21,9 @@ class WebParser:
         self.url = url
         self.quote_url = 'https://www.zhihu.com/people/' + parse.quote(url[url.rfind('/') + 1:])
         self.person_dict = {
-            'home-page': url,
-            '_id': url[url.rfind('/') + 1:],
+            'home_page': url,
+            # '_id': url[url.rfind('/') + 1:],
+            'id': url[url.rfind('/') + 1:],
             'agreed': 0,
             'gender': 'intersexuality',
             'username': '',
@@ -37,7 +38,7 @@ class WebParser:
             'answered': 0,
             'post': 0,
             'collect': 0,
-            'public-edit': 0,
+            'public_edit': 0,
             'followed': 0,
             'follower': 0
         }

@@ -32,7 +32,7 @@ class MonDb(object):
                 if col_name is 'link':
                     for i in data:
                         if i.get('overwrite') and i['overwrite']:
-                            self.update_link(i, {'status': i['status']})
+                            self.update_link(i, {'status': i.get('status', 'crawled')})
                             continue
                         if i['_id'] not in self.user_set:
                             self.user_set.add(i['_id'])
@@ -48,7 +48,7 @@ class MonDb(object):
                     try:
                         self.info_doc.insert_one(data)
                     except errors.DuplicateKeyError as e:
-                        logger.error('[save info] duplicate key: ' + str(data['home-page']))
+                        logger.error('[save info] duplicate key: ' + str(data['home_page']))
                 else:
                     logger.error('col_name [%s] is not exist' % col_name)
                     raise Exception('col_name is not exist')
