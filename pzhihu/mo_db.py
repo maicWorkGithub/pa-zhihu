@@ -7,7 +7,7 @@ from pymongo import errors, MongoClient
 
 logger = logging.getLogger('zhihu-logger')
 
-client = MongoClient("mongodb://localhost:27017/",  connect=False)
+client = MongoClient("mongodb://localhost:27017/", connect=False)
 
 
 class MonDb(object):
@@ -53,8 +53,8 @@ class MonDb(object):
                     logger.error('col_name [%s] is not exist' % col_name)
                     raise Exception('col_name is not exist')
             except errors.PyMongoError as e:
-                logger.error('[save col]: ' + col_name + ': ' + str(e))
-
+                logger.error('[save info]: ' + col_name + ': ' + str(e))
+    
     def update_link(self, data, update):
         try:
             self.link_doc.find_one_and_update({'_id': data['_id']}, {'$set': update})
@@ -91,17 +91,14 @@ if __name__ == '__main__':
     md = MonDb()
     # mongodb 的查找和更新
 
-    md.save_col('link', [
-        {
-            '_id': 'https://docs.python.org/3/library/pickle.html1',
-            'url': 'https://docs.python.org/3/library/pickle.html1',
-            'status': 'non-crawled',
-            'overwrite': False
-        },
-        {
-            '_id': 'https://docs.python.org/3/library/pickle.html2',
-            'url': 'https://docs.python.org/3/library/pickle.html2',
-            'status': 'non-crawled',
-            'overwrite': True
-        }
-    ])
+    with open('pa-zhihu.log', 'r') as f:
+        for line in f.readlines():
+            if 'INFO || Start crawl:' in line:
+                print(line)
+                md.save_col('link', [
+                    {
+                        "_id": line[line.find('INFO || Start crawl:') + len('INFO || Start crawl:'):].strip(),
+                        'status': 'non-crawled',
+                        'overwrite': True
+                    }
+                ])

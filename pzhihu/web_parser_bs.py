@@ -177,7 +177,7 @@ class WebParser:
                                     logger.warning('用户 [%s] 在爬取关注者 [第%s页] 的时候返回内容为空, 已抓取 [%s个] 用户链接'
                                                    % (self.person_dict['username'], times, len(self.followed_urls)))
                             else:
-                                logger.warning('用户 [%s] 在爬去关注者时, 抓取 [第%s页] 时失败, code为: %s'
+                                logger.warning('用户 [%s] 在爬取关注者时, 抓取 [第%s页] 失败, code为: %s'
                                                % (self.person_dict['username'], times, r_inner.status_code))
                         except exceptions.ConnectionError as e:
                             logger.error('function get inner user followed connection error.')
